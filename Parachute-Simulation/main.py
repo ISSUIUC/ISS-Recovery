@@ -15,18 +15,24 @@ class LimitExceededException(Exception):
         super().__init__(message)
 
 # drogue
-drogue_radius = parachute.ParachuteCalculation.calculate_radius_max_descent_vel(config.ROCKET_MASS, config.DROGUE_DRAG_COEFF, launch_site, config.MAIN_ALTITUDE, config.TARGET_DROGUE_DESCENT)
 print("\n=== DROGUE ===")
-print("To achieve a drogue descent velocity of " + str(config.TARGET_DROGUE_DESCENT) + ":")
+if not config.DROGIE_DIAMETER:
+    drogue_radius = parachute.ParachuteCalculation.calculate_radius_max_descent_vel(config.ROCKET_MASS, config.DROGUE_DRAG_COEFF, launch_site, config.MAIN_ALTITUDE, config.TARGET_DROGUE_DESCENT)
+    print("To achieve a drogue descent velocity of " + str(config.TARGET_DROGUE_DESCENT) + ":")
+else:
+    drogue_radius = config.DROGIE_DIAMETER/2
 # For proper outputting
 drogue_radius.set_unit(config.OUTPUT_UNITS)
 print("Parachute radius: " + str(drogue_radius))
 print()
 
 # main
-main_radius = parachute.ParachuteCalculation.calculate_radius_landing(config.ROCKET_MASS, config.MAIN_DRAG_COEFF, launch_site, config.TARGET_LANDING_VEL)
 print("=== MAIN ===")
-print("To achieve a landing velocity of " + str(config.TARGET_LANDING_VEL) + ":")
+if not config.MAIN_DIAMETER:
+    main_radius = parachute.ParachuteCalculation.calculate_radius_landing(config.ROCKET_MASS, config.MAIN_DRAG_COEFF, launch_site, config.TARGET_LANDING_VEL)
+    print("To achieve a landing velocity of " + str(config.TARGET_LANDING_VEL) + ":")
+else:
+    main_radius = config.MAIN_DIAMETER/2
 # For proper outputting
 main_radius.set_unit(config.OUTPUT_UNITS)
 print("Parachute radius: " + str(main_radius))
