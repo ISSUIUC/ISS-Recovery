@@ -22,8 +22,11 @@ class ParachuteCalculation:
         return ParachuteCalculation.calculate_radius(mass, drag_coeff, air_density, target_velocity)
 
 class DriftAnalysisResult:
-    def __init__(self, drift: util.units.Measurement, max_vel: util.units.Measurement) -> None:
+    def __init__(self, drift: util.units.Measurement, max_vel: util.units.Measurement, time: float, timestamp_list: list[float], vel_list: list[float]) -> None:
         self.drift = drift
+        self.time = time
+        self.ts_list = timestamp_list
+        self.v_list = vel_list
         self.maximum_velocity = max_vel
 
 class Parachute:
@@ -49,7 +52,7 @@ class Parachute:
     def area_to_radius(area: float) -> float:
         return math.sqrt(area / scipy.constants.pi)
 
-    def get_drift(self, timestep: float, start_altitude: util.units.Measurement, end_altitude: util.units.Measurement, environment: util.environment.Environment, start_velocity: util.units.Measurement) -> DriftAnalysisResult:
+    def get_drift(self, timestep: float, start_altitude: util.units.Measurement, end_altitude: util.units.Measurement, environment: util.environment.Environment, start_velocity: util.units.Measurement, start_time: float) -> DriftAnalysisResult:
         drift = util.units.Measurement(0)
         alt = start_altitude
         velocity = start_velocity
@@ -57,8 +60,16 @@ class Parachute:
         # This will (for now) naively assume the rocket is already travelling at terminal velocity.
         print_debounce = 0
         print_debounce_max = 100
-        while alt > end_altitude:
 
+
+        total_time = start_time
+        ts_list = []
+        vel_list = []
+
+        while alt > end_altitude:
+            total_time += timestep
+            ts_list.append(total_time)
+            vel_list.append(velocity.m())
             drag_force = self.calculate_drag(environment.get_density(alt), velocity)
             drag_accel = drag_force/self.attached_mass.kg()
             acceleration = util.units.Measurement(scipy.constants.g - drag_accel).per(util.units.UTime.SECOND)
@@ -79,5 +90,5 @@ class Parachute:
                 print_debounce = 0
 
         
-        return DriftAnalysisResult(drift, maximum_velocity.per(util.units.UTime.SECOND))
+        return DriftAnalysisResult(drift, maximum_velocity.per(util.units.UTime.SECOND), total_time, ts_list, vel_list)
     

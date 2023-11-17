@@ -4,6 +4,9 @@ import util.units as m
 import util.environment as environment
 import config
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 launch_site = environment.Environment(config.LAUNCH_SITE_ALTITUDE, config.WIND_SPEED)
 
 class LimitExceededException(Exception):
@@ -55,8 +58,12 @@ d_vel_max =  drogue.get_terminal_velocity(config.APOGEE_ALTITUDE, launch_site)
 
 
 # Calculate drift
-drift_drogue = drogue.get_drift(config.ANALYSIS_TIMESTEP, config.APOGEE_ALTITUDE, config.MAIN_ALTITUDE, launch_site, m.Measurement(0).per(m.UTime.SECOND))
-drift_main = main.get_drift(config.ANALYSIS_TIMESTEP, config.MAIN_ALTITUDE, m.Measurement(0), launch_site, d_vel_at_main_deploy)
+
+drift_list = []
+timestamp_list = []
+
+drift_drogue = drogue.get_drift(config.ANALYSIS_TIMESTEP, config.APOGEE_ALTITUDE, config.MAIN_ALTITUDE, launch_site, m.Measurement(0).per(m.UTime.SECOND), 0)
+drift_main = main.get_drift(config.ANALYSIS_TIMESTEP, config.MAIN_ALTITUDE, m.Measurement(0), launch_site, d_vel_at_main_deploy, drift_drogue.time)
 print()
 total_drift = drift_drogue.drift + drift_main.drift
 
@@ -71,3 +78,16 @@ print("> MAIN landing velocity: ", m_term.set_unit(m.Unit.FEET))
 print("> Maximum possible force on MAIN at deployment: ", force_on_main, "N")
 print("\nThe total drift will be", total_drift)
 print()
+
+total_timestamp_list = drift_drogue.ts_list + drift_main.ts_list
+total_vel_list = drift_drogue.v_list + drift_main.v_list
+
+fig, ax = plt.subplots()
+ax.plot(total_timestamp_list, total_vel_list)
+
+ax.set(xlabel='time (s)', ylabel='velocity (m/s)',
+       title='Velocity vs time')
+ax.grid()
+
+fig.savefig("test.png")
+plt.show()
