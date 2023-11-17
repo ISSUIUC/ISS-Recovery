@@ -1,3 +1,5 @@
 .DS_Store
 test.png
 out.txt
+*.pyc
+__pycache__/
