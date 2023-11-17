@@ -18,27 +18,34 @@ class LimitExceededException(Exception):
 print("\n=== DROGUE ===")
 if not config.DROGUE_DIAMETER:
     drogue_radius = parachute.ParachuteCalculation.calculate_radius_max_descent_vel(config.ROCKET_MASS, config.DROGUE_DRAG_COEFF, launch_site, config.MAIN_ALTITUDE, config.TARGET_DROGUE_DESCENT)
+    drogue = parachute.Parachute(config.DROGUE_DRAG_COEFF, drogue_radius, config.ROCKET_MASS)
     print("To achieve a drogue descent velocity of " + str(config.TARGET_DROGUE_DESCENT) + ":")
+    print("Parachute diameter: " + str(drogue_radius*2.0))
 else:
     drogue_radius = config.DROGUE_DIAMETER/2
+    drogue = parachute.Parachute(config.DROGUE_DRAG_COEFF, drogue_radius, config.ROCKET_MASS)
+    print("With a drogue parachute diameter of " + str(config.DROGUE_DIAMETER) + ":")
+    print("Terminal drogue velocity at main deploy: " + str(drogue.get_terminal_velocity(config.MAIN_ALTITUDE, launch_site)))
+
 # For proper outputting
 drogue_radius.set_unit(config.OUTPUT_UNITS)
-print("Parachute diameter: " + str(drogue_radius*2.0))
 print()
 
 # main
 print("=== MAIN ===")
 if not config.MAIN_DIAMETER:
     main_radius = parachute.ParachuteCalculation.calculate_radius_landing(config.ROCKET_MASS, config.MAIN_DRAG_COEFF, launch_site, config.TARGET_LANDING_VEL)
+    main = parachute.Parachute(config.MAIN_DRAG_COEFF, main_radius, config.ROCKET_MASS)
     print("To achieve a landing velocity of " + str(config.TARGET_LANDING_VEL) + ":")
+    print("Parachute diameter: " + str(main_radius*2.0))
 else:
     main_radius = config.MAIN_DIAMETER/2
+    main = parachute.Parachute(config.MAIN_DRAG_COEFF, main_radius, config.ROCKET_MASS)
+    print("With a main parachute diameter of " + str(config.MAIN_DIAMETER) + ":")
+    print("Main terminal velocity at deploy: " + str(main.get_terminal_velocity(config.MAIN_ALTITUDE, launch_site)))
+    print("Main terminal velocity at landing: " + str(main.get_terminal_velocity(m.Measurement(0, m.Unit.METERS), launch_site)))
 # For proper outputting
 main_radius.set_unit(config.OUTPUT_UNITS)
-print("Parachute diameter: " + str(main_radius*2.0))
-
-drogue = parachute.Parachute(config.DROGUE_DRAG_COEFF, drogue_radius, config.ROCKET_MASS)
-main = parachute.Parachute(config.MAIN_DRAG_COEFF, main_radius, config.ROCKET_MASS)
 
 # Check parachute limits
 # drogue limit
