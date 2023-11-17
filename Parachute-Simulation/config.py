@@ -6,7 +6,7 @@ APOGEE_ALTITUDE = u.Measurement(10, u.Unit.KILOMETERS) # Apogee deployment altit
 MAIN_ALTITUDE = u.Measurement(2000, u.Unit.FEET) # Main parachute deployment altitude
 WIND_SPEED = u.Measurement(9, u.Unit.MILES).per(u.UTime.HOUR) # Wind speed
 
-DROGIE_DIAMETER = u.Measurement(13.72, u.Unit.INCHES)
+DROGUE_DIAMETER = u.Measurement(13.72, u.Unit.INCHES)
 MAIN_DIAMETER = u.Measurement(47, u.Unit.INCHES)
 
 # DROGIE_DIAMETER = None
