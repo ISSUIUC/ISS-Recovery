@@ -87,6 +87,13 @@ ax.plot(total_timestamp_list, total_vel_list)
 
 ax.set(xlabel='time (s)', ylabel='velocity (m/s)',
        title='Velocity vs time')
+
+ax.vlines(len(drift_drogue.ts_list)*config.ANALYSIS_TIMESTEP, ymin=0, ymax=drift_drogue.maximum_velocity.m(), linestyles='dashed')
+ax.text(x=len(drift_drogue.ts_list), y=drift_drogue.maximum_velocity.m(), s="Main Deploy")
+
+ax.vlines(0, ymin=0, ymax=drift_drogue.maximum_velocity.m(), linestyles='dashed')
+ax.text(x=0, y=drift_drogue.maximum_velocity.m(), s="Drogue Deploy")
+
 ax.grid()
 
 fig.savefig("test.png")
