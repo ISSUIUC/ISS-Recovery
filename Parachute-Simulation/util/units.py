@@ -68,7 +68,9 @@ class Measurement:
         self._p_unit = measurement_unit
 
     def set_unit(self, unit: Unit):
+        """Sets the preferred unit of the measurement. Does not change the measurement."""
         self._p_unit = unit
+        return self
 
     def length_unit_to_text(measurement_unit: Unit) -> str:
         match measurement_unit:

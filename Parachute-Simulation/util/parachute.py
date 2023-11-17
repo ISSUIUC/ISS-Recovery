@@ -2,6 +2,8 @@ import scipy.constants
 import util.units
 import util.environment
 import math
+import config
+
 
 class ParachuteCalculation:
     def calculate_radius(mass: util.units.MassMeasurement, drag_coeff: float, air_density: float, target_velocity: util.units.Measurement) -> util.units.Measurement:
@@ -18,6 +20,11 @@ class ParachuteCalculation:
         """Calculate the radius of parachute required to have a descent rate of `target_velocity` at altitude `altitude` above `launch_env`"""
         air_density = launch_env.get_density(altitude)
         return ParachuteCalculation.calculate_radius(mass, drag_coeff, air_density, target_velocity)
+
+class DriftAnalysisResult:
+    def __init__(self, drift: util.units.Measurement, max_vel: util.units.Measurement) -> None:
+        self.drift = drift
+        self.maximum_velocity = max_vel
 
 class Parachute:
     def __init__(self, drag_coefficient: float, radius: util.units.Measurement, attached_mass: util.units.MassMeasurement):
@@ -42,22 +49,35 @@ class Parachute:
     def area_to_radius(area: float) -> float:
         return math.sqrt(area / scipy.constants.pi)
 
-    def get_drift(self, timestep: float, start_altitude: util.units.Measurement, end_altitude: util.units.Measurement, environment: util.environment.Environment) -> util.units.Measurement:
+    def get_drift(self, timestep: float, start_altitude: util.units.Measurement, end_altitude: util.units.Measurement, environment: util.environment.Environment, start_velocity: util.units.Measurement) -> DriftAnalysisResult:
         drift = util.units.Measurement(0)
         alt = start_altitude
-
+        velocity = start_velocity
+        maximum_velocity = velocity
         # This will (for now) naively assume the rocket is already travelling at terminal velocity.
+        print_debounce = 0
+        print_debounce_max = 100
         while alt > end_altitude:
+
+            drag_force = self.calculate_drag(environment.get_density(alt), velocity)
+            drag_accel = drag_force/self.attached_mass.kg()
+            acceleration = util.units.Measurement(scipy.constants.g - drag_accel).per(util.units.UTime.SECOND)
+            velocity = velocity + (acceleration * timestep)
+
             term_vel = self.get_terminal_velocity(alt, environment)
+            #if(velocity > term_vel):
+            #    velocity = term_vel
             drift += environment.wind_speed * timestep
-            alt -= term_vel * timestep
 
-        return drift
+            alt -= velocity * timestep
+            if(velocity > maximum_velocity):
+                maximum_velocity = velocity
 
-    
-    
+            print_debounce += 1
+            if print_debounce > print_debounce_max:
+                print(f"performing drift analysis... {100*(1-alt.m()/config.APOGEE_ALTITUDE.m()):.0f}%", end="    \r")
+                print_debounce = 0
 
-    
-    
-
+        
+        return DriftAnalysisResult(drift, maximum_velocity.per(util.units.UTime.SECOND))
     
