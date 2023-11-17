@@ -17,7 +17,7 @@ class LimitExceededException(Exception):
 # drogue
 print("\n=== DROGUE ===")
 if not config.DROGUE_DIAMETER:
-    drogue_diameter = parachute.ParachuteCalculation.calculate_radius_max_descent_vel(config.ROCKET_MASS, config.DROGUE_DRAG_COEFF, launch_site, config.MAIN_ALTITUDE, config.TARGET_DROGUE_DESCENT)
+    drogue_radius = parachute.ParachuteCalculation.calculate_radius_max_descent_vel(config.ROCKET_MASS, config.DROGUE_DRAG_COEFF, launch_site, config.MAIN_ALTITUDE, config.TARGET_DROGUE_DESCENT)
     print("To achieve a drogue descent velocity of " + str(config.TARGET_DROGUE_DESCENT) + ":")
 else:
     drogue_radius = config.DROGUE_DIAMETER/2
@@ -49,7 +49,7 @@ if force_on_drogue > config.MAXIMUM_PARACHUTE_FORCE_LIMIT:
 else:
     print(f"DROGUE force OK ({force_on_drogue} N)")
 # main limit
-force_on_main = main.calculate_drag(launch_site.get_density(config.MAIN_ALTITUDE), drogue.get_terminal_velocity(config.MAIN_ALTITUDE, launch_site))
+force_on_main = main.calculate_drag(launch_site.get_density(config.MAIN_ALTITUDE), main.get_terminal_velocity(config.MAIN_ALTITUDE, launch_site))
 if force_on_main > config.MAXIMUM_PARACHUTE_FORCE_LIMIT:
     raise LimitExceededException(f"MAIN force limit exceeded ({force_on_main} N > {config.MAXIMUM_PARACHUTE_FORCE_LIMIT} N)")
 else:
