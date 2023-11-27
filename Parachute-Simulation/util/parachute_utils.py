@@ -6,4 +6,4 @@ class OpeningFunction(Enum):
     SQRT = lambda x: math.sqrt(x)
     SQUARE = lambda x: x**2
     CUBE = lambda x: x**3
-    NATURAL = lambda x: (math.exp(x) - 1) / 1.718
+    NATURAL = lambda x: (math.exp(x) - 1) / (math.e-1)

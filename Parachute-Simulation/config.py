@@ -3,7 +3,7 @@ import util.parachute_utils as putil
 
 ROCKET_MASS = u.MassMeasurement(40, u.UMass.LB) # Mass of the rocket
 LAUNCH_SITE_ALTITUDE = u.Measurement(1000, u.Unit.FEET) # Altitude of the launch site
-APOGEE_ALTITUDE = u.Measurement(80, u.Unit.KILOMETERS) # Apogee deployment altitude
+APOGEE_ALTITUDE = u.Measurement(30000, u.Unit.FEET) # Apogee deployment altitude
 MAIN_ALTITUDE = u.Measurement(2000, u.Unit.FEET) # Main parachute deployment altitude
 WIND_SPEED = u.Measurement(9, u.Unit.MILES).per(u.UTime.HOUR) # Wind speed
 
@@ -19,10 +19,10 @@ MAIN_DIAMETER = None
 # Parachute parameters
 DROGUE_DRAG_COEFF = 1.4 # C_d of the drogue parachute (DRIFT: NO EFFECT)
 MAIN_DRAG_COEFF = 1.8 # C_d of the main parachute (DRIFT: NO EFFECT)
-DROGUE_T_FILL = 5 # Fill time for DROGUE
-MAIN_T_FILL = 15 # Fill time for MAIN
-DROGUE_FILL_CHAR_FUNCTION = putil.OpeningFunction.SQUARE
-MAIN_FILL_CHAR_FUNCTION = putil.OpeningFunction.SQUARE
+DROGUE_T_FILL = 4 # Fill time for DROGUE
+MAIN_T_FILL = 3 # Fill time for MAIN
+DROGUE_FILL_CHAR_FUNCTION = putil.OpeningFunction.NATURAL
+MAIN_FILL_CHAR_FUNCTION = putil.OpeningFunction.NATURAL
 
 # LIMITS
 MAXIMUM_PARACHUTE_FORCE_LIMIT = 8000 # Maximum force a parachute (mainly shockcord) can experience before breaking.

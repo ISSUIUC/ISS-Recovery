@@ -102,7 +102,7 @@ total_alt_list = drift_drogue.alt_list + drift_main.alt_list
 
 fig, ax = plt.subplots()
 ax.plot(total_timestamp_list, total_vel_list)
-ax.plot(total_timestamp_list, total_alt_list)
+# ax.plot(total_timestamp_list, total_alt_list)
 
 ax.set(xlabel='time (s)', ylabel='velocity (m/s)',
        title='Velocity vs time')

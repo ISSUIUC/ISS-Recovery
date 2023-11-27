@@ -11,6 +11,8 @@ class ParachuteOpeningCharacteristics:
         self.fill_time = fill_time
 
     def get_opening_percentage(self, time_after_opening) -> float:
+        if(self.fill_time <= 0):
+            return 1
         percent_characteristic_curve = time_after_opening / self.fill_time
         if(percent_characteristic_curve > 1):
             percent_characteristic_curve = 1
