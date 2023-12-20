@@ -7,7 +7,7 @@ import config
 import matplotlib.pyplot as plt
 import numpy as np
 
-launch_site = environment.Environment(config.LAUNCH_SITE_ALTITUDE, config.WIND_SPEED)
+launch_site = environment.Environment(config.LAUNCH_SITE_ALTITUDE, config.WIND_MODEL)
 
 class LimitExceededException(Exception):
     """Exception raised for exceeded limits"""

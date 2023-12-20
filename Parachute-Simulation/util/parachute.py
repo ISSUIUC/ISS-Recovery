@@ -115,12 +115,13 @@ class Parachute:
 
             drag_accel = drag_force/self.attached_mass.kg()
             acceleration = util.units.Measurement(scipy.constants.g - drag_accel).per(util.units.UTime.SECOND)
+
             velocity = velocity + (acceleration * timestep)
 
             term_vel = self.get_terminal_velocity(alt, environment)
             #if(velocity > term_vel):
             #    velocity = term_vel
-            drift += environment.wind_speed * timestep
+            drift += environment.get_windspeed(alt) * timestep
 
             alt -= velocity * timestep
             if(velocity > maximum_velocity):
