@@ -1,4 +1,3 @@
-
 # Equation for calculating black powder needed
 # http://hararocketry.org/hara/resources/how-to-size-ejection-charge/
 import numpy as np
@@ -6,42 +5,36 @@ import util.units as u
 import util.environment as env
 import util.environment_utils as env_util
 
-
 # Configuration:
 TARGET_PRESSURE = 12 # (psi) The target pressure to achieve seperation. "Typical pressure range is from 8-16 psi"
 
-SEPERATION_ALTITUDE = u.Measurement(900, u.Unit.FEET)
-LOWER_DEPLOY_ALTITUDE = u.Measurement(900, u.Unit.FEET)
-UPPER_DEPLOY_ALTITUDE = u.Measurement(8000, u.Unit.FEET)
+SEPERATION_ALTITUDE = u.Measurement(1500, u.Unit.FEET) # Altitude (approximate AGL) at which seperation will take place
+LOWER_DEPLOY_ALTITUDE = u.Measurement(8000, u.Unit.FEET) # Altitude (approximate AGL) at which lower stage deployment will take place
+UPPER_DEPLOY_ALTITUDE = u.Measurement(30000, u.Unit.FEET) # Altitude (approximate AGL) at which upper stage deployment will take place
 
-LAUNCH_ALTITUDE = u.Measurement(0, u.Unit.FEET)
+LAUNCH_ALTITUDE = u.Measurement(1257, u.Unit.FEET) # Altitude of launch site (above sea level)
 
 # Rocket dimensions
-AIRFRAME_DIAMETER = u.Measurement(3, u.Unit.INCHES)
-SEPERATION_CLEARANCE_LENGTH = u.Measurement(3, u.Unit.INCHES)
-UPPER_BAY_LENGTH = u.Measurement(17, u.Unit.INCHES)
-LOWER_BAY_LENGTH = u.Measurement(12.2, u.Unit.INCHES)
+AIRFRAME_DIAMETER = u.Measurement(3, u.Unit.INCHES) # Assuming the rocket to be a perfect cylinder, the diameter of the cylinder
+SEPERATION_CLEARANCE_LENGTH = u.Measurement(3, u.Unit.INCHES) # How long the interstage coupler is
+UPPER_BAY_LENGTH = u.Measurement(17, u.Unit.INCHES) # How long the upper stage recovery bay is
+LOWER_BAY_LENGTH = u.Measurement(12.2, u.Unit.INCHES) # How long the lower stage recovery bay is
 
 # Constants
 R = 266 # gas constant (inches * lbf / lbm)
 
-# Calculation =============
-
-environment = env.Environment(LAUNCH_ALTITUDE, env_util.WindModelConstant(u.Measurement(0)))
+# ============= Calculation [Do not modify beyond this line] =============
+environment = env.Environment(LAUNCH_ALTITUDE, env_util.WindModelConstant(u.Measurement(0))) # Set up launch env
 
 def K_to_R(kelvin: float) -> float:
     """Kelvin to Rankine converter"""
     return kelvin * 1.8
 
+airframe_cross_section_area = np.pi * (AIRFRAME_DIAMETER.inches()/2)**2 # (in^2)
 
-airframe_cross_section_area = np.pi * (AIRFRAME_DIAMETER.inches()/2)**2 # (m^2)
-
-print(airframe_cross_section_area)
-
-seperation_temperature = K_to_R(environment.get_temperature(SEPERATION_ALTITUDE))
-lower_deploy_temperature = K_to_R(environment.get_temperature(LOWER_DEPLOY_ALTITUDE))
-upper_deploy_temperature = K_to_R(environment.get_temperature(UPPER_DEPLOY_ALTITUDE))
-
+seperation_temperature = K_to_R(environment.get_temperature(SEPERATION_ALTITUDE)) # Temp (in Rankine) of ambient temp at seperation altitude
+lower_deploy_temperature = K_to_R(environment.get_temperature(LOWER_DEPLOY_ALTITUDE)) # Temp (in Rankine) of ambient temp at 1st stage recovery deployment altitude
+upper_deploy_temperature = K_to_R(environment.get_temperature(UPPER_DEPLOY_ALTITUDE)) # Temp (in Rankine) of ambient temp at 2nd stage recovery deployment altitude
 
 seperation_area_volume: u.Measurement = SEPERATION_CLEARANCE_LENGTH * airframe_cross_section_area
 upper_bay_volume: u.Measurement = UPPER_BAY_LENGTH * airframe_cross_section_area
