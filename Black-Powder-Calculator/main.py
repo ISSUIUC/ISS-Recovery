@@ -2,7 +2,7 @@
 # Equation for calculating black powder needed
 # http://hararocketry.org/hara/resources/how-to-size-ejection-charge/
 import numpy as np
-Pressure = 12 # assuming we want this much pressure (psi)
+Pressure = 8 # assuming we want this much pressure (psi)
 # "Typical pressure range is from 8-16 psi"
 Diameter = 3 # airframe diameter (inches)
 Area = np.pi*Diameter**2/4

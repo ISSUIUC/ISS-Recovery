@@ -8,17 +8,17 @@ import util.environment_utils as env_util
 # Configuration:
 TARGET_PRESSURE = 12 # (psi) The target pressure to achieve seperation. "Typical pressure range is from 8-16 psi"
 
-SEPERATION_ALTITUDE = u.Measurement(1500, u.Unit.FEET) # Altitude (approximate AGL) at which seperation will take place
-LOWER_DEPLOY_ALTITUDE = u.Measurement(8000, u.Unit.FEET) # Altitude (approximate AGL) at which lower stage deployment will take place
+SEPERATION_ALTITUDE = u.Measurement(2000, u.Unit.FEET) # Altitude (approximate AGL) at which seperation will take place
+LOWER_DEPLOY_ALTITUDE = u.Measurement(9829, u.Unit.FEET) # Altitude (approximate AGL) at which lower stage deployment will take place
 UPPER_DEPLOY_ALTITUDE = u.Measurement(30000, u.Unit.FEET) # Altitude (approximate AGL) at which upper stage deployment will take place
 
 LAUNCH_ALTITUDE = u.Measurement(1257, u.Unit.FEET) # Altitude of launch site (above sea level)
 
 # Rocket dimensions
-AIRFRAME_DIAMETER = u.Measurement(3, u.Unit.INCHES) # Assuming the rocket to be a perfect cylinder, the diameter of the cylinder
-SEPERATION_CLEARANCE_LENGTH = u.Measurement(3, u.Unit.INCHES) # How long the interstage coupler is
-UPPER_BAY_LENGTH = u.Measurement(17, u.Unit.INCHES) # How long the upper stage recovery bay is
-LOWER_BAY_LENGTH = u.Measurement(12.2, u.Unit.INCHES) # How long the lower stage recovery bay is
+AIRFRAME_DIAMETER = u.Measurement(4, u.Unit.INCHES) # Assuming the rocket to be a perfect cylinder, the diameter of the cylinder
+SEPERATION_CLEARANCE_LENGTH = u.Measurement(4, u.Unit.INCHES) # How long the interstage coupler is
+UPPER_BAY_LENGTH = u.Measurement(14.5, u.Unit.INCHES) # How long the upper stage recovery bay is
+LOWER_BAY_LENGTH = u.Measurement(14.5, u.Unit.INCHES) # How long the lower stage recovery bay is
 
 # Constants
 R = 266 # gas constant (inches * lbf / lbm)
@@ -36,18 +36,18 @@ seperation_temperature = K_to_R(environment.get_temperature(SEPERATION_ALTITUDE)
 lower_deploy_temperature = K_to_R(environment.get_temperature(LOWER_DEPLOY_ALTITUDE)) # Temp (in Rankine) of ambient temp at 1st stage recovery deployment altitude
 upper_deploy_temperature = K_to_R(environment.get_temperature(UPPER_DEPLOY_ALTITUDE)) # Temp (in Rankine) of ambient temp at 2nd stage recovery deployment altitude
 
+# Calculate volumes of the 3 bays
 seperation_area_volume: u.Measurement = SEPERATION_CLEARANCE_LENGTH * airframe_cross_section_area
 upper_bay_volume: u.Measurement = UPPER_BAY_LENGTH * airframe_cross_section_area
 lower_bay_volume: u.Measurement = LOWER_BAY_LENGTH * airframe_cross_section_area
 
-seperation_area_volume = u.Measurement(31.762, u.Unit.INCHES)
+GRAMS_TO_LB = 454 # Conversion factor
 
-GRAMS_TO_LB = 454
-
+# Calculate ideal powder amounts
 powder_amount_seperation = ((TARGET_PRESSURE * seperation_area_volume.inches()) / (R * seperation_temperature)) * GRAMS_TO_LB
 powder_amount_lower = ((TARGET_PRESSURE * lower_bay_volume.inches()) / (R * lower_deploy_temperature)) * GRAMS_TO_LB
 powder_amount_upper = ((TARGET_PRESSURE * upper_bay_volume.inches()) / (R * upper_deploy_temperature)) * GRAMS_TO_LB
 
-print('BP needed for staging separation: {:.3f}g'.format(powder_amount_seperation),)
-print('BP needed for lower stage separation: {:.3f}g'.format(powder_amount_lower))
-print('BP needed for upper stage separation: {:.3f}g'.format(powder_amount_upper))
+print(f'[Interstage]  BP: {powder_amount_seperation:.3f}g  ({TARGET_PRESSURE}psi @ {SEPERATION_ALTITUDE})')
+print(f'[Booster Stage Deploy]  BP: {powder_amount_lower:.3f}g  ({TARGET_PRESSURE}psi @ {LOWER_DEPLOY_ALTITUDE})')
+print(f'[Sustainer Stage Deploy]  BP: {powder_amount_upper:.3f}g  ({TARGET_PRESSURE}psi @ {UPPER_DEPLOY_ALTITUDE})')
