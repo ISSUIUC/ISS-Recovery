@@ -62,7 +62,7 @@ main_radius.set_unit(config.OUTPUT_UNITS)
 
 
 # Drift analysis
-m_term =  main.get_terminal_velocity(m.Measurement(0), launch_site)
+m_term =  main.get_terminal_velocity(m.Measurement(0), launch_site, other_parachutes=[drogue])
 d_vel_at_main_deploy =  drogue.get_terminal_velocity(config.MAIN_ALTITUDE, launch_site)
 d_vel_max =  drogue.get_terminal_velocity(config.APOGEE_ALTITUDE, launch_site)
 
