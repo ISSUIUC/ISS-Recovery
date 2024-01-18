@@ -81,6 +81,7 @@ total_drift = drift_drogue.drift + drift_main.drift
 total_drift.set_unit(config.DRIFT_UNITS)
 
 main_final_velocity_fl = drift_main.v_list[len(drift_main.v_list) - 1]
+main_avg_velocity = m.Measurement(drift_main.steady_state_velocity).per(m.UTime.SECOND).set_unit(config.LAND_SPEED_UNITS)
 main_final_vel = m.Measurement(main_final_velocity_fl).per(m.UTime.SECOND).set_unit(config.LAND_SPEED_UNITS)
 
 print("=== FORCE ANALYSIS ===")
@@ -90,9 +91,11 @@ print()
 print("=== DRIFT ANALYSIS ===")
 print("DROGUE will drift ", drift_drogue.drift, "  from the launch site")
 print("> DROGUE maximum velocity", drift_drogue.maximum_velocity.set_unit(m.Unit.FEET))
+print("> DROGUE average velocity: ", m.Measurement(drift_drogue.steady_state_velocity).per(m.UTime.SECOND).set_unit(config.LAND_SPEED_UNITS))
 print("> DROGUE velocity at main deploy", d_vel_at_main_deploy.set_unit(m.Unit.FEET))
 print("MAIN will drift ", drift_main.drift, " from the launch site")
 print("> MAIN landing velocity: ", main_final_vel)
+print("> MAIN average velocity: ", main_avg_velocity)
 print("\nThe total drift will be", total_drift)
 print()
 
