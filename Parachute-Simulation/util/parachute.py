@@ -28,6 +28,7 @@ class DriftAnalysisResult:
         self.alt_list = alt_list
         self.maximum_velocity = max_vel
         self.max_force = max_force
+        self.steady_state_velocity = sum(vel_list) / len(vel_list)
 
 class Parachute:
     def __init__(self, drag_coefficient: float, radius: util.units.Measurement, attached_mass: util.units.MassMeasurement, opening_characteristics: ParachuteOpeningCharacteristics):
@@ -46,9 +47,14 @@ class Parachute:
         protrated_parachute_radius = self.radius.m() * opening_percentage
         return 0.5*(fluid_density * (velocity.m()**2) * self.drag_coefficient * ((protrated_parachute_radius**2) * scipy.constants.pi))
     
-    def get_terminal_velocity(self, altitude: util.units.Measurement, environment: util.environment.Environment) -> util.units.Measurement:
+    def get_terminal_velocity(self, altitude: util.units.Measurement, environment: util.environment.Environment, other_parachutes = []) -> util.units.Measurement:
         """Get terminal velocity at altitude"""
-        term_vel = math.sqrt((2 * self.attached_mass.kg() * scipy.constants.g)/(environment.get_density(altitude) * self.drag_coefficient * self.area()))
+        total_cd = self.drag_coefficient * self.area()
+
+        for parachute in other_parachutes:
+            total_cd += parachute.drag_coefficient * parachute.area()
+
+        term_vel = math.sqrt((2 * self.attached_mass.kg() * scipy.constants.g)/(environment.get_density(altitude) * total_cd))
         return util.units.Measurement(term_vel).per(util.units.UTime.SECOND)
 
     def area(self) -> float:
