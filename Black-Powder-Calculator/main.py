@@ -2,17 +2,17 @@
 # Equation for calculating black powder needed
 # http://hararocketry.org/hara/resources/how-to-size-ejection-charge/
 import numpy as np
-Pressure = 21.54 # assuming we want this much pressure (psi)
+Pressure = 8 # assuming we want this much pressure (psi)
 # "Typical pressure range is from 8-16 psi"
-Diameter = 4 # airframe diameter (inches)
+Diameter = 3 # airframe diameter (inches)
 Area = np.pi*Diameter**2/4
 Area1 = np.pi*(1.5**2)
 R = 266 # gas constant (inches * lbf / lbm)
 T_separation = 518.67 #515.46 # 900 ft. (Rankine)
 T_lower = 518.67 #515.46 # 900 ft. (Rankine)
 T_upper = 518.67 #490.141 # 8000 ft. (Rankine)
-L_lower = 14.5 # length between bulkheads in the lower stage
-L_upper = 14.5 # length between bulkheads in the upper stage
+L_lower = 12.2 # length between bulkheads in the lower stage
+L_upper = 17 # length between bulkheads in the upper stage
 V_lower = Area * L_lower
 V_upper = Area * L_upper
 g_to_lb = 454 # number of grams in a pound (g to lbm)

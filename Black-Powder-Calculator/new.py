@@ -15,7 +15,7 @@ UPPER_DEPLOY_ALTITUDE = u.Measurement(37530, u.Unit.FEET) # Altitude (approximat
 LAUNCH_ALTITUDE = u.Measurement(1257, u.Unit.FEET) # Altitude of launch site (above sea level)
 
 SHEAR_PIN_COUNT = 3
-SHEAR_PIN_FORCE = 40 # in lbf
+SHEAR_PIN_FORCE = 42 # in lbf
 
 # Rocket dimensions
 AIRFRAME_DIAMETER = u.Measurement(4, u.Unit.INCHES) # Assuming the rocket to be a perfect cylinder, the diameter of the cylinder
@@ -32,17 +32,21 @@ environment = env.Environment(LAUNCH_ALTITUDE, env_util.WindModelConstant(u.Meas
 class Simulation:
     """Abstraction for a single black powder calculation"""
     GRAMS_TO_LB = 454
-    def __init__(self, name:str, pressure, volume, temperature) -> None:
+    def __init__(self, name:str, pressure, volume, temperature, bp_efficiency=1) -> None:
         self.name = name
         self.pressure = pressure
         self.volume = volume
         self.temperature = temperature
+        self.efficiency = bp_efficiency
 
     def bp_burn_efficiency(self):
-        return (self.temperature/3307)*100
+        if(self.efficiency == 1):
+            return (self.temperature/3307)*100
+        else:
+            return self.efficiency*100
 
     def result(self):
-        return ((self.pressure * self.volume) / (R * self.temperature)) * self.GRAMS_TO_LB
+        return ((self.pressure * self.volume) / (R * self.temperature)) * self.GRAMS_TO_LB * (1/self.efficiency)
 
 
 class Stage:
@@ -55,12 +59,12 @@ class Stage:
         self.default_pressure = default_pressure
         self.sims: list[Simulation] = []
 
-    def add_sim(self, name: str, temperature, pressure=-1, volume=-1):
+    def add_sim(self, name: str, temperature, pressure=-1, volume=-1, efficiency=1):
         if(volume == -1):
             volume = self.default_volume
         if(pressure == -1):
             pressure = self.default_pressure
-        self.sims.append(Simulation(name, pressure, volume, temperature))
+        self.sims.append(Simulation(name, pressure, volume, temperature, efficiency))
 
     def get_volume(self) -> float:
         return self.length * self.cross_section_area
@@ -79,7 +83,8 @@ def K_to_R(kelvin: float) -> float:
 airframe_cross_section_area = np.pi * (AIRFRAME_DIAMETER.inches()/2)**2 # (in^2)
 
 shear_pin_force = (SHEAR_PIN_COUNT * SHEAR_PIN_FORCE)
-total_force =  shear_pin_force + (TARGET_PRESSURE * airframe_cross_section_area)
+friction_force = 0
+total_force =  shear_pin_force + (TARGET_PRESSURE * airframe_cross_section_area) + friction_force
 equivalent_pressure = total_force / airframe_cross_section_area
 
 bp_gas_temperature = 3307
@@ -111,17 +116,24 @@ GRAMS_TO_LB = 454 # Conversion factor
 seperation_stage = Stage("INTERSTAGE", airframe_cross_section_area, SEPERATION_CLEARANCE_LENGTH.inches(), default_pressure=equivalent_pressure)
 seperation_stage.add_sim("\x1b[90mAbsolute Lower bound (Best case)\x1b[0m", bp_gas_temperature)
 seperation_stage.add_sim("\x1b[90mAbsolute Upper bound (Worst case)\x1b[0m", seperation_temperature)
-seperation_stage.add_sim("\x1b[32mBEST GUESS (historical)\x1b[0m", old_calculator_temp)
+seperation_stage.add_sim("\x1b[90mCalculator v1 (historical)\x1b[0m", old_calculator_temp)
+seperation_stage.add_sim("\x1b[32mBEST GUESS (historical: SG1)\x1b[0m", bp_gas_temperature, efficiency=0.162)
+seperation_stage.add_sim("\x1b[90m50 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.5)
 
-lower_stage = Stage("LOWER STAGE", airframe_cross_section_area, LOWER_BAY_LENGTH.inches(), default_pressure=equivalent_pressure)
+lower_stage = Stage("BOOSTER", airframe_cross_section_area, LOWER_BAY_LENGTH.inches(), default_pressure=equivalent_pressure)
 lower_stage.add_sim("\x1b[90mAbsolute Lower bound (Best case)\x1b[0m", bp_gas_temperature)
 lower_stage.add_sim("\x1b[90mAbsolute Upper bound (Worst case)\x1b[0m", lower_deploy_temperature)
-lower_stage.add_sim("\x1b[32mBEST GUESS (historical)\x1b[0m", old_calculator_temp)
+lower_stage.add_sim("\x1b[90mCalculator v1 (historical)\x1b[0m", old_calculator_temp)
+lower_stage.add_sim("\x1b[32mBEST GUESS (historical: SG1)\x1b[0m", bp_gas_temperature, efficiency=0.162)
+lower_stage.add_sim("\x1b[90m50 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.5)
 
-upper_stage = Stage("UPPER STAGE", airframe_cross_section_area, LOWER_BAY_LENGTH.inches(), default_pressure=equivalent_pressure)
+
+upper_stage = Stage("SUSTAINER", airframe_cross_section_area, UPPER_BAY_LENGTH.inches(), default_pressure=equivalent_pressure)
 upper_stage.add_sim("\x1b[90mAbsolute Lower bound (Best case)\x1b[0m", bp_gas_temperature)
 upper_stage.add_sim("\x1b[90mAbsolute Upper bound (Worst case)\x1b[0m", upper_deploy_temperature)
-upper_stage.add_sim("\x1b[32mBEST GUESS (historical)\x1b[0m", old_calculator_temp)
+upper_stage.add_sim("\x1b[90mCalculator v1 (historical)\x1b[0m", old_calculator_temp)
+upper_stage.add_sim("\x1b[32mBEST GUESS (historical: SG1)\x1b[0m", bp_gas_temperature, efficiency=0.162)
+upper_stage.add_sim("\x1b[90m50 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.5)
 
 print(f"BP Calculation results")
 print(f"(Shear pins) {SHEAR_PIN_COUNT} shear pins @ {SHEAR_PIN_FORCE}lbf (each)")
