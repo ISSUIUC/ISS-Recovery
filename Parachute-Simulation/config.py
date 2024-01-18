@@ -2,27 +2,33 @@ import util.units as u
 import util.parachute_utils as putil
 import util.environment_utils as eutil
 
-ROCKET_MASS = u.MassMeasurement(17.3, u.UMass.LB) # Mass of the rocket
+# Sustainer dry mass: 19.8 lbs
+# Booster dry mass: 13.7 lbs
+# Sustainer wet mass: 35.3 lbs
+# Booster wet mass: 50.7 lbs
+# Use DRY MASS since motor will have burned
+
+ROCKET_MASS = u.MassMeasurement(13.7, u.UMass.LB) # Mass of the rocket
 LAUNCH_SITE_ALTITUDE = u.Measurement(1257, u.Unit.FEET) # Altitude of the launch site
-APOGEE_ALTITUDE = u.Measurement(10, u.Unit.KILOMETERS) # Apogee deployment altitude
+APOGEE_ALTITUDE = u.Measurement(15000, u.Unit.FEET) # Apogee deployment altitude
 MAIN_ALTITUDE = u.Measurement(2000, u.Unit.FEET) # Main parachute deployment altitude
 
 # WIND_MODEL = eutil.WindModelConstant(u.Measurement(9, u.Unit.MILES).per(u.UTime.HOUR))
-WIND_MODEL = eutil.WindModelConstant(u.Measurement(9, u.Unit.MILES).per(u.UTime.HOUR))
+WIND_MODEL = eutil.WindModelConstant(u.Measurement(12, u.Unit.MILES).per(u.UTime.HOUR))
 # WIND_SPEED = u.Measurement(9, u.Unit.MILES).per(u.UTime.HOUR) # Wind speed
 
 
-DROGUE_DIAMETER = None
-MAIN_DIAMETER = None
+# DROGUE_DIAMETER = None
+# MAIN_DIAMETER = None
 
-# DROGUE_DIAMETER = u.Measurement(13.43, u.Unit.INCHES)
-# MAIN_DIAMETER = u.Measurement(47, u.Unit.INCHES)
+DROGUE_DIAMETER = u.Measurement(20, u.Unit.INCHES)
+MAIN_DIAMETER = u.Measurement(48, u.Unit.INCHES)
 
 
 
 # Parachute parameters
 DROGUE_DRAG_COEFF = 1.2 # C_d of the drogue parachute (DRIFT: NO EFFECT)
-MAIN_DRAG_COEFF = 1.2 # C_d of the main parachute (DRIFT: NO EFFECT)
+MAIN_DRAG_COEFF = 2 # C_d of the main parachute (DRIFT: NO EFFECT)
 DROGUE_T_FILL = 4 # Fill time for DROGUE
 MAIN_T_FILL = 1.5 # Fill time for MAIN
 DROGUE_FILL_CHAR_FUNCTION = putil.OpeningFunction.NATURAL
