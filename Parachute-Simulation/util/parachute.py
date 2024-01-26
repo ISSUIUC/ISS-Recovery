@@ -13,14 +13,20 @@ class ParachuteOpeningCharacteristics:
     def get_opening_percentage(self, time_after_opening) -> float:
         if(self.fill_time <= 0):
             return 1
+        if(time_after_opening <= 0):
+            return 0
         percent_characteristic_curve = time_after_opening / self.fill_time
         if(percent_characteristic_curve > 1):
             percent_characteristic_curve = 1
 
         return self.opening_function(percent_characteristic_curve)
 
+class DriftMonteCarloParameters:
+    def __init__(self, ejection_delay: float) -> None:
+        self.ejection_delay = ejection_delay
+
 class DriftAnalysisResult:
-    def __init__(self, drift: util.units.Measurement, max_vel: util.units.Measurement, time: float, timestamp_list: list[float], vel_list: list[float], alt_list: list[float], max_force: float) -> None:
+    def __init__(self, drift: util.units.Measurement, max_vel: util.units.Measurement, time: float, timestamp_list: list[float], vel_list: list[float], alt_list: list[float], max_force: float, is_monte_carlo=False, monte_carlo_params: DriftMonteCarloParameters = DriftMonteCarloParameters(0)) -> None:
         self.drift = drift
         self.time = time
         self.ts_list = timestamp_list
@@ -29,6 +35,10 @@ class DriftAnalysisResult:
         self.maximum_velocity = max_vel
         self.max_force = max_force
         self.steady_state_velocity = sum(vel_list) / len(vel_list)
+        self.is_monte_carlo = is_monte_carlo
+        self.monte_carlo_params = monte_carlo_params
+
+
 
 class Parachute:
     def __init__(self, drag_coefficient: float, radius: util.units.Measurement, attached_mass: util.units.MassMeasurement, opening_characteristics: ParachuteOpeningCharacteristics):
@@ -66,7 +76,8 @@ class Parachute:
 
     def get_drift(self, timestep: float, start_altitude: util.units.Measurement, 
                   end_altitude: util.units.Measurement, environment: util.environment.Environment, 
-                  start_velocity: util.units.Measurement, start_time: float, other_parachutes: list = []) -> DriftAnalysisResult:
+                  start_velocity: util.units.Measurement, start_time: float, other_parachutes: list = [],
+                  monte_carlo_params: DriftMonteCarloParameters = DriftMonteCarloParameters(0)) -> DriftAnalysisResult:
         drift = util.units.Measurement(0)
         alt = start_altitude
         velocity = start_velocity
@@ -92,17 +103,17 @@ class Parachute:
             if(abs(alt.m() - config.MAIN_ALTITUDE.m()) < config.DYNAMIC_TIMESTEP_RANGE.m()):
                 timestep = fine_timestep
                 if print_debounce > print_debounce_max:
-                    print(f"performing drift analysis... {100*(1-alt.m()/config.APOGEE_ALTITUDE.m()):.0f}%  [Fine timestep]", end="    \r")
+                    print(f"simulating... {100*(1-alt.m()/config.APOGEE_ALTITUDE.m()):.0f}%  [Fine timestep]", end="    \r")
                     print_debounce = 0
             else:
                 timestep = normal_timestep
                 if print_debounce > print_debounce_max:
-                    print(f"performing drift analysis... {100*(1-alt.m()/config.APOGEE_ALTITUDE.m()):.0f}%  [Normal timestep]", end="    \r")
+                    print(f"simulating... {100*(1-alt.m()/config.APOGEE_ALTITUDE.m()):.0f}%  [Normal timestep]", end="    \r")
                     print_debounce = 0
 
             # Since this function simulates a parachute with other parachutes as secondary, we will assume
             # all other parachutes are already opened :)   
-            time_since_opening = total_time - start_time
+            time_since_opening = total_time - start_time - monte_carlo_params.ejection_delay
             parachute_opening_percentage = self.opening_characteristics.get_opening_percentage(time_since_opening)
 
             total_time += timestep
@@ -135,7 +146,7 @@ class Parachute:
 
 
         
-        return DriftAnalysisResult(drift, maximum_velocity.per(util.units.UTime.SECOND), total_time, ts_list, vel_list, alt_list, max_force_cur)
+        return DriftAnalysisResult(drift, maximum_velocity.per(util.units.UTime.SECOND), total_time, ts_list, vel_list, alt_list, max_force_cur, monte_carlo_params.ejection_delay != 0, monte_carlo_params)
 
 class ParachuteCalculation:
 

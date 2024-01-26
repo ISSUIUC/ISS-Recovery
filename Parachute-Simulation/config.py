@@ -34,9 +34,6 @@ MAIN_T_FILL = 1 # Fill time for MAIN
 DROGUE_FILL_CHAR_FUNCTION = putil.OpeningFunction.NATURAL
 MAIN_FILL_CHAR_FUNCTION = putil.OpeningFunction.NATURAL
 
-# Assumed parameters
-OPENING_SHOCK_DECREASE_FACTOR = 0.2 # Assumed value for "heavy, high-flying high-powered rockets"
-
 # LIMITS
 MAXIMUM_PARACHUTE_FORCE_LIMIT = 8000 # Maximum force a parachute (mainly shockcord) can experience before breaking.
 """Unlimited"""
@@ -46,9 +43,14 @@ TARGET_DROGUE_DESCENT = u.Measurement(75, u.Unit.FEET).per(u.UTime.SECOND) # Tar
 TARGET_LANDING_VEL = u.Measurement(26, u.Unit.FEET).per(u.UTime.SECOND) # Target velocity when hitting the ground
 
 # ==== DRIFT SIMULATION PARAMETERS ====
-ANALYSIS_TIMESTEP = 0.05 # Drift simulation timestep
+ANALYSIS_TIMESTEP = 0.05 # Drift simulation timestep (Default 0.05)
 DYNAMIC_TIMESTEP_RANGE = u.Measurement(80, u.Unit.METERS) # What range above/below critical events should the timestep be lowered?
-FINE_ANALYSIS_TIMESTEP = 0.001
+FINE_ANALYSIS_TIMESTEP = 0.001 # Default 0.001
+
+# ==== MONTE CARLO PARAMETERS ====
+OPENING_SHOCK_FACTOR = 2 # Ck, from opening shock calculation (dimensionless)
+DEPLOY_DELAY_MAXIMUM = 10 # seconds
+DEPLOY_DELAY_FINENESS = 0.1 # The intervals to use for the monte carlo simulation
 
 # Output configuration
 OUTPUT_UNITS = u.Unit.INCHES

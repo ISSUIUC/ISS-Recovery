@@ -71,9 +71,9 @@ d_vel_max =  drogue.get_terminal_velocity(config.APOGEE_ALTITUDE, launch_site)
 drift_list = []
 timestamp_list = []
 
-drift_drogue = drogue.get_drift(config.ANALYSIS_TIMESTEP, config.APOGEE_ALTITUDE, config.MAIN_ALTITUDE, launch_site, m.Measurement(0).per(m.UTime.SECOND), 0)
+drift_drogue = drogue.get_drift(config.ANALYSIS_TIMESTEP, config.APOGEE_ALTITUDE, config.MAIN_ALTITUDE, launch_site, m.Measurement(0).per(m.UTime.SECOND), 0, [], parachute.DriftMonteCarloParameters(10))
 main_deploy_velocity = drift_drogue.v_list[len(drift_drogue.v_list) - 1]
-drift_main = main.get_drift(config.ANALYSIS_TIMESTEP, config.MAIN_ALTITUDE, m.Measurement(0), launch_site, m.Measurement(main_deploy_velocity).per(m.UTime.SECOND), drift_drogue.time, [drogue])
+drift_main = main.get_drift(config.ANALYSIS_TIMESTEP, config.MAIN_ALTITUDE, m.Measurement(0), launch_site, m.Measurement(main_deploy_velocity).per(m.UTime.SECOND), drift_drogue.time, [drogue], parachute.DriftMonteCarloParameters(1))
 print()
 total_drift = drift_drogue.drift + drift_main.drift
 
@@ -83,9 +83,9 @@ main_final_velocity_fl = drift_main.v_list[len(drift_main.v_list) - 1]
 main_avg_velocity = m.Measurement(drift_main.steady_state_velocity).per(m.UTime.SECOND).set_unit(config.LAND_SPEED_UNITS)
 main_final_vel = m.Measurement(main_final_velocity_fl).per(m.UTime.SECOND).set_unit(config.LAND_SPEED_UNITS)
 
-print("=== FORCE ANALYSIS ===")
-print(f"DROGUE will experience a maximum force of {drift_drogue.max_force} N")
-print(f"MAIN will experience a maximum force of {drift_main.max_force} N")
+print("=== FORCE ANALYSIS (non monte-carlo) ===")
+print(f"DROGUE will experience a maximum force of {drift_drogue.max_force * config.OPENING_SHOCK_FACTOR} N")
+print(f"MAIN will experience a maximum force of {drift_main.max_force * config.OPENING_SHOCK_FACTOR} N")
 print()
 print("=== DRIFT ANALYSIS ===")
 print("DROGUE will drift ", drift_drogue.drift, "  from the launch site")
@@ -98,24 +98,81 @@ print("> MAIN average velocity: ", main_avg_velocity)
 print("\nThe total drift will be", total_drift)
 print()
 
-total_timestamp_list = drift_drogue.ts_list + drift_main.ts_list
-total_vel_list = drift_drogue.v_list + drift_main.v_list
-total_alt_list = drift_drogue.alt_list + drift_main.alt_list
+
+
+def plot_drift_simulation(drogue_result: parachute.DriftAnalysisResult, main_result: parachute.DriftAnalysisResult):
+    total_timestamp_list = drogue_result.ts_list + main_result.ts_list
+    total_vel_list = drogue_result.v_list + main_result.v_list
+    total_alt_list = drogue_result.alt_list + main_result.alt_list
+
+
+    fig, ax = plt.subplots()
+    ax.plot(total_timestamp_list, total_vel_list)
+    # ax.plot(total_timestamp_list, total_alt_list)
+
+    ax.set(xlabel='time (s)', ylabel='velocity (m/s)',
+        title='Velocity vs time')
+
+    if(main_result.is_monte_carlo):
+        ax.vlines(drogue_result.time, ymin=0, ymax=drogue_result.maximum_velocity.m(), linestyles='dashed')
+        ax.text(x=drogue_result.time + 1, y=drogue_result.maximum_velocity.m(), s="Main Deploy (expected)")
+        ax.vlines(drogue_result.time + main_result.monte_carlo_params.ejection_delay, ymin=0, ymax=drogue_result.maximum_velocity.m(), linestyles='dashed', color="red")
+        ax.text(x=drogue_result.time + main_result.monte_carlo_params.ejection_delay + 1, y=drogue_result.maximum_velocity.m()*0.95, s="Main Deploy (actual)", color="red")
+    else:
+        ax.vlines(drogue_result.time, ymin=0, ymax=drogue_result.maximum_velocity.m(), linestyles='dashed')
+        ax.text(x=drogue_result.time + 1, y=drogue_result.maximum_velocity.m(), s="Main Deploy")
+
+    
+    if(drogue_result.is_monte_carlo):
+        ax.vlines(0, ymin=0, ymax=drogue_result.maximum_velocity.m(), linestyles='dashed')
+        ax.text(x=0+1, y=drogue_result.maximum_velocity.m(), s="Drogue Deploy (expected)")
+        ax.vlines(drogue_result.monte_carlo_params.ejection_delay, ymin=0, ymax=drogue_result.maximum_velocity.m(), linestyles='dashed', color="red")
+        ax.text(x=drogue_result.monte_carlo_params.ejection_delay+1, y=drogue_result.maximum_velocity.m()*0.95, s="Drogue Deploy (actual)", color="red")
+    else:
+        ax.vlines(0, ymin=0, ymax=drogue_result.maximum_velocity.m(), linestyles='dashed')
+        ax.text(x=0+1, y=drogue_result.maximum_velocity.m(), s="Drogue Deploy")
+
+    ax.grid()
+
+    plt.show()
+
+plot_drift_simulation(drift_drogue, drift_main)
+
+# ============== MONTE CARLO ==============
+print("=== Monte carlo ===")
+
+max_force_drogue_list = [drift_drogue.max_force * config.OPENING_SHOCK_FACTOR]
+max_force_main_list = [drift_main.max_force * config.OPENING_SHOCK_FACTOR]
+max_force_timestamp_list = [0]
+cur_deploy_delay: float = config.DEPLOY_DELAY_FINENESS # We calculated 0s, skip it.
+while cur_deploy_delay <= config.DEPLOY_DELAY_MAXIMUM:
+    # Run simulation
+    
+    d_result = drogue.get_drift(config.ANALYSIS_TIMESTEP, config.APOGEE_ALTITUDE, config.MAIN_ALTITUDE, launch_site, 
+                                m.Measurement(0).per(m.UTime.SECOND), 0, [], parachute.DriftMonteCarloParameters(cur_deploy_delay)).max_force * config.OPENING_SHOCK_FACTOR
+    m_result = main.get_drift(config.ANALYSIS_TIMESTEP, config.MAIN_ALTITUDE, m.Measurement(0), launch_site, m.Measurement(main_deploy_velocity).per(m.UTime.SECOND),
+                               drift_drogue.time, [drogue], parachute.DriftMonteCarloParameters(cur_deploy_delay)).max_force * config.OPENING_SHOCK_FACTOR
+    print(f"Sim [{cur_deploy_delay}]: (main: {d_result:.1f}N), (drogue: {m_result:.1f}N), added to analysis")
+    # Add results
+    max_force_drogue_list.append(d_result)
+    max_force_main_list.append(m_result)
+    max_force_timestamp_list.append(cur_deploy_delay)
+    
+    # Propagate monte-carlo
+    cur_deploy_delay += config.DEPLOY_DELAY_FINENESS
+
+print("Monte carlo analysis complete.")
 
 fig, ax = plt.subplots()
-ax.plot(total_timestamp_list, total_vel_list)
-# ax.plot(total_timestamp_list, total_alt_list)
+ax.plot(max_force_timestamp_list, max_force_main_list, label="Main")
+ax.plot(max_force_timestamp_list, max_force_drogue_list, label="Drogue")
 
-ax.set(xlabel='time (s)', ylabel='velocity (m/s)',
-       title='Velocity vs time')
-
-ax.vlines(drift_drogue.time, ymin=0, ymax=drift_drogue.maximum_velocity.m(), linestyles='dashed')
-ax.text(x=drift_drogue.time + 2, y=drift_drogue.maximum_velocity.m(), s="Main Deploy")
-
-ax.vlines(0, ymin=0, ymax=drift_drogue.maximum_velocity.m(), linestyles='dashed')
-ax.text(x=0+2, y=drift_drogue.maximum_velocity.m(), s="Drogue Deploy")
+ax.set(xlabel='deployment delay (s)', ylabel='Maximum shock during descent (N)',
+       title='Opening shock vs deployment delay')
 
 ax.grid()
 
-fig.savefig("test.png")
+fig.savefig("shock.png")
 plt.show()
+    
+
