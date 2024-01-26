@@ -66,7 +66,6 @@ m_term =  main.get_terminal_velocity(m.Measurement(0), launch_site, other_parach
 d_vel_at_main_deploy =  drogue.get_terminal_velocity(config.MAIN_ALTITUDE, launch_site)
 d_vel_max =  drogue.get_terminal_velocity(config.APOGEE_ALTITUDE, launch_site)
 
-
 # Calculate drift
 
 drift_list = []

@@ -159,3 +159,7 @@ class ParachuteCalculation:
         """Calculate the radius of parachute required to have a descent rate of `target_velocity` at altitude `altitude` above `launch_env`"""
         air_density = launch_env.get_density(altitude)
         return ParachuteCalculation.calculate_radius(mass, drag_coeff, air_density, target_velocity)
+    
+    def get_maximum_loading(maximum_force: float, x0: float, x1: float):
+        pass
+
