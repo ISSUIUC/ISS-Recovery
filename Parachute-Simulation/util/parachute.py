@@ -38,7 +38,7 @@ class DriftAnalysisResult:
         self.is_monte_carlo = is_monte_carlo
         self.monte_carlo_params = monte_carlo_params
         self.disreef_forces = disreef_forces
-        """Array of timestamps with associated disreef forces"""
+        """Array of forces with associated timestamps"""
 
 
 

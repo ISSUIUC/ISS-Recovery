@@ -98,8 +98,6 @@ print("> MAIN average velocity: ", main_avg_velocity)
 print("\nThe total drift will be", total_drift)
 print()
 
-
-
 def plot_drift_simulation(drogue_result: parachute.DriftAnalysisResult, main_result: parachute.DriftAnalysisResult):
     total_timestamp_list = drogue_result.ts_list + main_result.ts_list
     total_vel_list = drogue_result.v_list + main_result.v_list
@@ -135,7 +133,10 @@ def plot_drift_simulation(drogue_result: parachute.DriftAnalysisResult, main_res
     plt.grid()
 
     fig = plt.figure("Disreef shock")
-    plt.plot(drogue_result.ts_list, drogue_result.disreef_forces)
+    disreef_forces_lbf = [m.N_to_lbf(f) for f in drogue_result.disreef_forces]
+    plt.plot(drogue_result.ts_list, disreef_forces_lbf)
+    plt.hlines(config.MAXIMUM_PARACHUTE_FORCE_LIMIT, 0, drogue_result.ts_list[len(drogue_result.ts_list) - 1], linestyles="dashed", label="Maximum tolerance", colors="red")
+    plt.text(x=0, y=config.MAXIMUM_PARACHUTE_FORCE_LIMIT + 10, s="Maximum force tolerance", color="red")
 
     plt.xlabel("time (s)")
     plt.ylabel("Disreef shock (lbf)")
@@ -149,51 +150,74 @@ plot_drift_simulation(drift_drogue, drift_main)
 # ============== MONTE CARLO ==============
 print("=== Monte carlo ===")
 
-max_force_drogue_list = [drift_drogue.max_force * config.OPENING_SHOCK_FACTOR]
-max_force_main_list = [drift_main.max_force * config.OPENING_SHOCK_FACTOR]
+max_force_drogue_list = [m.N_to_lbf(drift_drogue.max_force * config.OPENING_SHOCK_FACTOR)]
+max_force_main_list = [m.N_to_lbf(drift_main.max_force * config.OPENING_SHOCK_FACTOR)]
+max_disreef_list = [m.N_to_lbf(max(drift_drogue.disreef_forces))]
+
+# Calculate the safety factor for our first simulation (to not resimulate)
+safety_factor_list = [config.MAXIMUM_PARACHUTE_FORCE_LIMIT / max([max_disreef_list[0], max_force_main_list[0], max_force_drogue_list[0]])] # wtf?
+
 drogue_results = [drift_drogue]
 main_results = [drift_main]
 max_force_timestamp_list = [0]
 cur_deploy_delay: float = config.DEPLOY_DELAY_FINENESS # We calculated 0s, skip it.
+
+monte_carlo_out = open(f"./monte_out/{config.OUTPUT_SHOCK_FILE}.txt", "w")
+
 while cur_deploy_delay <= config.DEPLOY_DELAY_MAXIMUM:
     # Run simulation
     
     d_result = drogue.get_drift(config.ANALYSIS_TIMESTEP, config.APOGEE_ALTITUDE, config.MAIN_ALTITUDE, launch_site, 
-                                m.Measurement(0).per(m.UTime.SECOND), 0, [], parachute.DriftMonteCarloParameters(cur_deploy_delay))
+                                m.Measurement(0).per(m.UTime.SECOND), 0, [], parachute.DriftMonteCarloParameters(cur_deploy_delay), main)
     m_result = main.get_drift(config.ANALYSIS_TIMESTEP, config.MAIN_ALTITUDE, m.Measurement(0), launch_site, m.Measurement(main_deploy_velocity).per(m.UTime.SECOND),
                                drift_drogue.time, [drogue], parachute.DriftMonteCarloParameters(cur_deploy_delay))
     
-    d_force = d_result.max_force * config.OPENING_SHOCK_FACTOR
-    m_force = m_result.max_force * config.OPENING_SHOCK_FACTOR
+    d_force = m.N_to_lbf(d_result.max_force * config.OPENING_SHOCK_FACTOR)
+    m_force = m.N_to_lbf(m_result.max_force * config.OPENING_SHOCK_FACTOR)
+    disreef_force = m.N_to_lbf(max(d_result.disreef_forces))
 
-    print(f"Sim [{cur_deploy_delay}]: (main: {m_force:.1f}N), (drogue: {d_force:.1f}N), added to analysis")
+    maximum_possible_force = max([d_force, m_force, disreef_force])
+    safety_factor = config.MAXIMUM_PARACHUTE_FORCE_LIMIT / maximum_possible_force
+
+    sim_result_text = f"Sim [{cur_deploy_delay}]: SAFETY FACTOR [{safety_factor:.2f}] (main: {m_force:.1f}lbf), (drogue: {d_force:.1f}lbf), (disreef: {disreef_force:.1f}lbf)\n"
+    monte_carlo_out.write(sim_result_text)
+    print(sim_result_text + " -- added to analysis")
     # Add results
-    max_force_drogue_list.append(m.N_to_lbf(d_force))
-    max_force_main_list.append(m.N_to_lbf(m_force))
+    max_force_drogue_list.append(d_force)
+    max_force_main_list.append(m_force)
+    max_disreef_list.append(disreef_force)
     max_force_timestamp_list.append(cur_deploy_delay)
     drogue_results.append(d_result)
     main_results.append(m_result)
+    safety_factor_list.append(safety_factor)
     
     # Propagate monte-carlo
     cur_deploy_delay += config.DEPLOY_DELAY_FINENESS
 
 print("Monte carlo analysis complete.")
 
+
 # Plot shock vs time after deploy
 fig = plt.figure("montecarlo-shock-plot")
-plt.plot(max_force_timestamp_list, max_force_main_list, label="Main")
-plt.plot(max_force_timestamp_list, max_force_drogue_list, label="Drogue")
+plt.plot(max_force_timestamp_list, max_force_main_list, label="Main (normal deployment)")
+plt.plot(max_force_timestamp_list, max_force_drogue_list, label="Drogue (normal deployment)")
+plt.plot(max_force_timestamp_list, max_disreef_list, label="Main (early disreef worst case)")
 
 plt.xlabel("deployment delay (s)")
 plt.ylabel("Maximum shock during descent (lbf)")
 plt.title("Opening shock vs deployment delay")
 
+plt.hlines(config.MAXIMUM_PARACHUTE_FORCE_LIMIT, 0, max_force_timestamp_list[len(max_force_timestamp_list) - 1], linestyles="dashed", label="Maximum tolerance", colors="red")
+plt.text(x=0, y=config.MAXIMUM_PARACHUTE_FORCE_LIMIT + 10, s="Maximum force tolerance", color="red")
+
+plt.legend()
+
 plt.grid()
 
-plt.savefig("./monte_out/march-sustainer-50kft.png")
+plt.savefig(f"./monte_out/{config.OUTPUT_SHOCK_FILE}.png")
 
 # Plot "3d" plot (all slices)
-fig = plt.figure("montecarlo-slice-plot")
+"""fig = plt.figure("montecarlo-slice-plot")
 
 for i in range(len(main_results)):
     m_res = main_results[i]
@@ -204,8 +228,7 @@ for i in range(len(main_results)):
     total_alt_list = d_res.alt_list + m_res.alt_list
 
     plt.plot(total_timestamp_list, total_vel_list, color=(i/len(main_results),0,0))
-
-
+"""
 plt.show()
     
 

@@ -10,7 +10,7 @@ import util.environment_utils as eutil
 
 ROCKET_MASS = u.MassMeasurement(19.8, u.UMass.LB) # Mass of the rocket
 LAUNCH_SITE_ALTITUDE = u.Measurement(1250, u.Unit.FEET) # Altitude of the launch site
-APOGEE_ALTITUDE = u.Measurement(50000, u.Unit.FEET) # Apogee deployment altitude
+APOGEE_ALTITUDE = u.Measurement(39000, u.Unit.FEET) # Apogee deployment altitude
 MAIN_ALTITUDE = u.Measurement(2000, u.Unit.FEET) # Main parachute deployment altitude
 
 # WIND_MODEL = eutil.WindModelConstant(u.Measurement(9, u.Unit.MILES).per(u.UTime.HOUR))
@@ -35,8 +35,7 @@ DROGUE_FILL_CHAR_FUNCTION = putil.OpeningFunction.NATURAL
 MAIN_FILL_CHAR_FUNCTION = putil.OpeningFunction.NATURAL
 
 # LIMITS
-MAXIMUM_PARACHUTE_FORCE_LIMIT = 8000 # Maximum force a parachute (mainly shockcord) can experience before breaking.
-"""Unlimited"""
+MAXIMUM_PARACHUTE_FORCE_LIMIT = 800 # lbf, Maximum force the parachute system can endure (force tolerance of weakest part connected to the chute system)
 
 # Target values
 TARGET_DROGUE_DESCENT = u.Measurement(75, u.Unit.FEET).per(u.UTime.SECOND) # Target drogue descent velocity
@@ -49,10 +48,12 @@ FINE_ANALYSIS_TIMESTEP = 0.001 # Default 0.001
 
 # ==== MONTE CARLO PARAMETERS ====
 OPENING_SHOCK_FACTOR = 2 # Ck, from opening shock calculation (dimensionless)
-DEPLOY_DELAY_MAXIMUM = 10 # seconds
-DEPLOY_DELAY_FINENESS = 0.1 # The intervals to use for the monte carlo simulation
+DEPLOY_DELAY_MAXIMUM = 15 # seconds
+DEPLOY_DELAY_FINENESS = 0.2 # The intervals to use for the monte carlo simulation
 
 # Output configuration
 OUTPUT_UNITS = u.Unit.INCHES
 LAND_SPEED_UNITS = u.Unit.FEET # per second
 DRIFT_UNITS = u.Unit.KILOMETERS
+OUTPUT_SHOCK_FILE = "march_sustainer_39kft"
+OUTPUT_MONTECARLO_FILE = "monte_carlo_39kft"
