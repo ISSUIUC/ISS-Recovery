@@ -193,3 +193,5 @@ class Measurement:
             return f"{self.to(self._p_unit):.2f} {Measurement.length_unit_to_text(self._p_unit)}   ({str(self.m())} m)"
                 
 
+def N_to_lbf(force):
+    return force / 4.448

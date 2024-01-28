@@ -8,9 +8,9 @@ import util.environment_utils as eutil
 # Booster wet mass: 50.7 lbs
 # Use DRY MASS since motor will have burned
 
-ROCKET_MASS = u.MassMeasurement(18, u.UMass.KG) # Mass of the rocket
-LAUNCH_SITE_ALTITUDE = u.Measurement(1000, u.Unit.FEET) # Altitude of the launch site
-APOGEE_ALTITUDE = u.Measurement(29049, u.Unit.FEET) # Apogee deployment altitude
+ROCKET_MASS = u.MassMeasurement(19.8, u.UMass.LB) # Mass of the rocket
+LAUNCH_SITE_ALTITUDE = u.Measurement(1250, u.Unit.FEET) # Altitude of the launch site
+APOGEE_ALTITUDE = u.Measurement(50000, u.Unit.FEET) # Apogee deployment altitude
 MAIN_ALTITUDE = u.Measurement(2000, u.Unit.FEET) # Main parachute deployment altitude
 
 # WIND_MODEL = eutil.WindModelConstant(u.Measurement(9, u.Unit.MILES).per(u.UTime.HOUR))
@@ -21,8 +21,8 @@ WIND_MODEL = eutil.WindModelConstant(u.Measurement(12, u.Unit.MILES).per(u.UTime
 # DROGUE_DIAMETER = None
 # MAIN_DIAMETER = None
 
-DROGUE_DIAMETER = u.Measurement(18, u.Unit.INCHES)
-MAIN_DIAMETER = u.Measurement(84, u.Unit.INCHES)
+DROGUE_DIAMETER = u.Measurement(20, u.Unit.INCHES)
+MAIN_DIAMETER = u.Measurement(60, u.Unit.INCHES)
 
 
 

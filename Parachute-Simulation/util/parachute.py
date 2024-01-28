@@ -26,7 +26,7 @@ class DriftMonteCarloParameters:
         self.ejection_delay = ejection_delay
 
 class DriftAnalysisResult:
-    def __init__(self, drift: util.units.Measurement, max_vel: util.units.Measurement, time: float, timestamp_list: list[float], vel_list: list[float], alt_list: list[float], max_force: float, is_monte_carlo=False, monte_carlo_params: DriftMonteCarloParameters = DriftMonteCarloParameters(0)) -> None:
+    def __init__(self, drift: util.units.Measurement, max_vel: util.units.Measurement, time: float, timestamp_list: list[float], vel_list: list[float], alt_list: list[float], disreef_forces: list[float], max_force: float, is_monte_carlo:bool=False, monte_carlo_params: DriftMonteCarloParameters = DriftMonteCarloParameters(0)) -> None:
         self.drift = drift
         self.time = time
         self.ts_list = timestamp_list
@@ -37,6 +37,8 @@ class DriftAnalysisResult:
         self.steady_state_velocity = sum(vel_list) / len(vel_list)
         self.is_monte_carlo = is_monte_carlo
         self.monte_carlo_params = monte_carlo_params
+        self.disreef_forces = disreef_forces
+        """Array of timestamps with associated disreef forces"""
 
 
 
@@ -73,11 +75,35 @@ class Parachute:
     
     def area_to_radius(area: float) -> float:
         return math.sqrt(area / scipy.constants.pi)
+    
+    def get_disreef_shock_force(self, environment: util.environment.Environment, cur_altitude: util.units.Measurement, cur_velocity: util.units.Measurement, other_parachutes) -> float:
+        """Returns maximum force experienced by a disreef at a given altitude/velocity by this parachute"""
+        # Quick short-term simulation for disreef shock
+        DISREEF_SHOCK_TIMESTEP = config.ANALYSIS_TIMESTEP * 5
+        total_time = 0
+        max_force = 0
+        sim_alt = cur_altitude
+        sim_vel = cur_velocity
+        while total_time < self.opening_characteristics.fill_time:
+            air_density = environment.get_density(sim_alt)
+            force = self.calculate_drag_with_opening(air_density, sim_vel, total_time / self.opening_characteristics.fill_time)
+            if(force > max_force):
+                max_force = force
+
+            other_parachute_list: list[Parachute] = other_parachutes # Type hinting lol
+            for parachute in other_parachute_list:
+                force += parachute.calculate_drag(air_density, sim_vel)
+            drag_accel = force/self.attached_mass.kg()
+            acceleration = util.units.Measurement(scipy.constants.g - drag_accel).per(util.units.UTime.SECOND)
+            sim_vel = sim_vel + (acceleration * DISREEF_SHOCK_TIMESTEP)
+            sim_alt -= sim_vel * DISREEF_SHOCK_TIMESTEP
+            total_time += DISREEF_SHOCK_TIMESTEP
+        return max_force
 
     def get_drift(self, timestep: float, start_altitude: util.units.Measurement, 
                   end_altitude: util.units.Measurement, environment: util.environment.Environment, 
                   start_velocity: util.units.Measurement, start_time: float, other_parachutes: list = [],
-                  monte_carlo_params: DriftMonteCarloParameters = DriftMonteCarloParameters(0)) -> DriftAnalysisResult:
+                  monte_carlo_params: DriftMonteCarloParameters = DriftMonteCarloParameters(0), disreef_sim_target = None) -> DriftAnalysisResult:
         drift = util.units.Measurement(0)
         alt = start_altitude
         velocity = start_velocity
@@ -93,6 +119,7 @@ class Parachute:
         ts_list = []
         vel_list = []
         alt_list = []
+        disreef_force_list = [] # List that stores worst-case disreef forces for a possible disreef
         max_force_cur = 0
 
         
@@ -120,12 +147,21 @@ class Parachute:
             ts_list.append(total_time)
             vel_list.append(velocity.m())
             alt_list.append(alt.m())
-            
-            drag_force = self.calculate_drag_with_opening(environment.get_density(alt), velocity, parachute_opening_percentage)
+            air_density = environment.get_density(alt)
+
+            drag_force = self.calculate_drag_with_opening(air_density, velocity, parachute_opening_percentage)
             cur_parachute_force = drag_force
             other_parachute_list: list[Parachute] = other_parachutes # Type hinting lol
             for parachute in other_parachute_list:
-                drag_force += parachute.calculate_drag(environment.get_density(alt), velocity)
+                drag_force += parachute.calculate_drag(air_density, velocity)
+
+            # Disreefing calculations (If the main were to disreef at this point what force would it experience?)
+            if(disreef_sim_target != None):
+                disreef_target_as_chute: Parachute = disreef_sim_target # Type hinting
+                
+                disreef_max_force = disreef_target_as_chute.get_disreef_shock_force(environment, alt, velocity, [self] + other_parachutes)
+                disreef_force_list.append(disreef_max_force * config.OPENING_SHOCK_FACTOR)
+
 
             if(cur_parachute_force > max_force_cur):
                 max_force_cur = cur_parachute_force
@@ -146,7 +182,7 @@ class Parachute:
 
 
         
-        return DriftAnalysisResult(drift, maximum_velocity.per(util.units.UTime.SECOND), total_time, ts_list, vel_list, alt_list, max_force_cur, monte_carlo_params.ejection_delay != 0, monte_carlo_params)
+        return DriftAnalysisResult(drift, maximum_velocity.per(util.units.UTime.SECOND), total_time, ts_list, vel_list, alt_list, disreef_force_list, max_force_cur, monte_carlo_params.ejection_delay != 0, monte_carlo_params)
 
 class ParachuteCalculation:
 
@@ -171,6 +207,4 @@ class ParachuteCalculation:
         air_density = launch_env.get_density(altitude)
         return ParachuteCalculation.calculate_radius(mass, drag_coeff, air_density, target_velocity)
     
-    def get_maximum_loading(maximum_force: float, x0: float, x1: float):
-        pass
 
