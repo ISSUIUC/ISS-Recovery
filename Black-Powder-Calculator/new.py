@@ -31,7 +31,7 @@ environment = env.Environment(LAUNCH_ALTITUDE, env_util.WindModelConstant(u.Meas
 
 class Simulation:
     """Abstraction for a single black powder calculation"""
-    GRAMS_TO_LB = 454
+    LB_TO_GRAMS = 454
     def __init__(self, name:str, pressure, volume, temperature, bp_efficiency=1) -> None:
         self.name = name
         self.pressure = pressure
@@ -46,7 +46,7 @@ class Simulation:
             return self.efficiency*100
 
     def result(self):
-        return ((self.pressure * self.volume) / (R * self.temperature)) * self.GRAMS_TO_LB * (1/self.efficiency)
+        return ((self.pressure * self.volume) / (R * self.temperature)) * self.LB_TO_GRAMS * (1/self.efficiency)
 
 
 class Stage:
@@ -98,6 +98,12 @@ def combustion_efficiency_temp(input: float):
     """Gets combustion efficiency from air temp"""
     return input/bp_gas_temperature
 
+def combustion_efficiency_rcm(bp_mass:float, chamber_volume:float, peak_pressure:float):
+    """Gets combustion efficiency based on bp mass, chamber volume, and peak pressure."""
+    """Units: chamber volume (in^3), pressure (psi), mass (g)"""
+    burned_bp: float = Simulation("_interopsim", peak_pressure, chamber_volume, bp_gas_temperature, 1).result()
+    return burned_bp/bp_mass
+
 def temp_c_text(input: float):
     eff = combustion_efficiency_temp(input)
     return f"({(eff*100):.1f}% efficiency)"
@@ -107,7 +113,7 @@ seperation_area_volume: u.Measurement = SEPERATION_CLEARANCE_LENGTH * airframe_c
 upper_bay_volume: u.Measurement = UPPER_BAY_LENGTH * airframe_cross_section_area
 lower_bay_volume: u.Measurement = LOWER_BAY_LENGTH * airframe_cross_section_area
 
-GRAMS_TO_LB = 454 # Conversion factor
+LB_TO_GRAMS = 454 # Conversion factor
 
 
 
@@ -119,6 +125,7 @@ seperation_stage.add_sim("\x1b[90mAbsolute Upper bound (Worst case)\x1b[0m", sep
 seperation_stage.add_sim("\x1b[90mCalculator v1 (historical)\x1b[0m", old_calculator_temp)
 seperation_stage.add_sim("\x1b[32mBEST GUESS (historical: SG1)\x1b[0m", bp_gas_temperature, efficiency=0.162)
 seperation_stage.add_sim("\x1b[90m50 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.5)
+seperation_stage.add_sim("\x1b[90m80 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.8)
 
 lower_stage = Stage("BOOSTER", airframe_cross_section_area, LOWER_BAY_LENGTH.inches(), default_pressure=equivalent_pressure)
 lower_stage.add_sim("\x1b[90mAbsolute Lower bound (Best case)\x1b[0m", bp_gas_temperature)
@@ -126,6 +133,7 @@ lower_stage.add_sim("\x1b[90mAbsolute Upper bound (Worst case)\x1b[0m", lower_de
 lower_stage.add_sim("\x1b[90mCalculator v1 (historical)\x1b[0m", old_calculator_temp)
 lower_stage.add_sim("\x1b[32mBEST GUESS (historical: SG1)\x1b[0m", bp_gas_temperature, efficiency=0.162)
 lower_stage.add_sim("\x1b[90m50 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.5)
+lower_stage.add_sim("\x1b[90m80 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.8)
 
 
 upper_stage = Stage("SUSTAINER", airframe_cross_section_area, UPPER_BAY_LENGTH.inches(), default_pressure=equivalent_pressure)
@@ -134,11 +142,14 @@ upper_stage.add_sim("\x1b[90mAbsolute Upper bound (Worst case)\x1b[0m", upper_de
 upper_stage.add_sim("\x1b[90mCalculator v1 (historical)\x1b[0m", old_calculator_temp)
 upper_stage.add_sim("\x1b[32mBEST GUESS (historical: SG1)\x1b[0m", bp_gas_temperature, efficiency=0.162)
 upper_stage.add_sim("\x1b[90m50 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.5)
+upper_stage.add_sim("\x1b[90m80 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.8)
 
 print(f"BP Calculation results")
 print(f"(Shear pins) {SHEAR_PIN_COUNT} shear pins @ {SHEAR_PIN_FORCE}lbf (each)")
 print(f"(Forces) {TARGET_PRESSURE}psi with {shear_pin_force}lbs shear pin force: {total_force}lbf (equiv {equivalent_pressure}psi)")
 print()
+
+
 print(seperation_stage)
 print(lower_stage)
 print(upper_stage)
