@@ -150,7 +150,6 @@ plot_drift_simulation(drift_drogue, drift_main)
 # ============== MONTE CARLO ==============
 print("=== Monte carlo ===")
 
-# Get values for instant deploys/ disreefs
 max_force_drogue_list = [m.N_to_lbf(drift_drogue.max_force * config.OPENING_SHOCK_FACTOR)]
 max_force_main_list = [m.N_to_lbf(drift_main.max_force * config.OPENING_SHOCK_FACTOR)]
 max_disreef_list = [m.N_to_lbf(max(drift_drogue.disreef_forces))]

@@ -44,7 +44,7 @@ TARGET_LANDING_VEL = u.Measurement(26, u.Unit.FEET).per(u.UTime.SECOND) # Target
 # ==== DRIFT SIMULATION PARAMETERS ====
 ANALYSIS_TIMESTEP = 0.05 # Drift simulation timestep (Default 0.05)
 DYNAMIC_TIMESTEP_RANGE = u.Measurement(80, u.Unit.METERS) # What range above/below critical events should the timestep be lowered?
-FINE_ANALYSIS_TIMESTEP = 0.05 # Default 0.001
+FINE_ANALYSIS_TIMESTEP = 0.001 # Default 0.001
 
 # ==== MONTE CARLO PARAMETERS ====
 OPENING_SHOCK_FACTOR = 2 # Ck, from opening shock calculation (dimensionless)
@@ -55,5 +55,5 @@ DEPLOY_DELAY_FINENESS = 0.2 # The intervals to use for the monte carlo simulatio
 OUTPUT_UNITS = u.Unit.INCHES
 LAND_SPEED_UNITS = u.Unit.FEET # per second
 DRIFT_UNITS = u.Unit.KILOMETERS
-OUTPUT_SHOCK_FILE = "march_sustainer_39kft_jan_29_2024"
-OUTPUT_MONTECARLO_FILE = "monte_carlo_39kft_jan_29_2024"
+OUTPUT_SHOCK_FILE = "march_sustainer_39kft"
+OUTPUT_MONTECARLO_FILE = "monte_carlo_39kft"
