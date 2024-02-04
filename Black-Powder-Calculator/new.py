@@ -14,14 +14,14 @@ UPPER_DEPLOY_ALTITUDE = u.Measurement(37530, u.Unit.FEET) # Altitude (approximat
 
 LAUNCH_ALTITUDE = u.Measurement(1257, u.Unit.FEET) # Altitude of launch site (above sea level)
 
-SHEAR_PIN_COUNT = 3
-SHEAR_PIN_FORCE = 42 # in lbf
+SHEAR_PIN_COUNT = 4
+SHEAR_PIN_FORCE = 40.12 # in lbf
 
 # Rocket dimensions
 AIRFRAME_DIAMETER = u.Measurement(4, u.Unit.INCHES) # Assuming the rocket to be a perfect cylinder, the diameter of the cylinder
-SEPERATION_CLEARANCE_LENGTH = u.Measurement(4, u.Unit.INCHES) # How long the interstage coupler is
-UPPER_BAY_LENGTH = u.Measurement(14.5, u.Unit.INCHES) # How long the upper stage recovery bay is
-LOWER_BAY_LENGTH = u.Measurement(14.5, u.Unit.INCHES) # How long the lower stage recovery bay is
+SEPERATION_CLEARANCE_LENGTH = u.Measurement(3.875, u.Unit.INCHES) # How long the interstage coupler is
+UPPER_BAY_LENGTH = u.Measurement(13.5, u.Unit.INCHES) # How long the upper stage recovery bay is
+LOWER_BAY_LENGTH = u.Measurement(13.5, u.Unit.INCHES) # How long the lower stage recovery bay is
 
 # Constants
 R = 266 # gas constant (inches * lbf / lbm)
@@ -84,7 +84,7 @@ airframe_cross_section_area = np.pi * (AIRFRAME_DIAMETER.inches()/2)**2 # (in^2)
 
 shear_pin_force = (SHEAR_PIN_COUNT * SHEAR_PIN_FORCE)
 friction_force = 0
-total_force =  shear_pin_force + (TARGET_PRESSURE * airframe_cross_section_area) + friction_force
+total_force =  (TARGET_PRESSURE * airframe_cross_section_area) + friction_force
 equivalent_pressure = total_force / airframe_cross_section_area
 
 bp_gas_temperature = 3307
@@ -123,7 +123,7 @@ seperation_stage = Stage("INTERSTAGE", airframe_cross_section_area, SEPERATION_C
 seperation_stage.add_sim("\x1b[90mAbsolute Lower bound (Best case)\x1b[0m", bp_gas_temperature)
 seperation_stage.add_sim("\x1b[90mAbsolute Upper bound (Worst case)\x1b[0m", seperation_temperature)
 seperation_stage.add_sim("\x1b[90mCalculator v1 (historical)\x1b[0m", old_calculator_temp)
-seperation_stage.add_sim("\x1b[32mBEST GUESS (historical: SG1)\x1b[0m", bp_gas_temperature, efficiency=0.162)
+seperation_stage.add_sim("\x1b[90mhistorical: SG1\x1b[0m", bp_gas_temperature, efficiency=0.162)
 seperation_stage.add_sim("\x1b[90m50 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.5)
 seperation_stage.add_sim("\x1b[90m80 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.8)
 
@@ -131,7 +131,7 @@ lower_stage = Stage("BOOSTER", airframe_cross_section_area, LOWER_BAY_LENGTH.inc
 lower_stage.add_sim("\x1b[90mAbsolute Lower bound (Best case)\x1b[0m", bp_gas_temperature)
 lower_stage.add_sim("\x1b[90mAbsolute Upper bound (Worst case)\x1b[0m", lower_deploy_temperature)
 lower_stage.add_sim("\x1b[90mCalculator v1 (historical)\x1b[0m", old_calculator_temp)
-lower_stage.add_sim("\x1b[32mBEST GUESS (historical: SG1)\x1b[0m", bp_gas_temperature, efficiency=0.162)
+lower_stage.add_sim("\x1b[90mhistorical: SG1\x1b[0m", bp_gas_temperature, efficiency=0.162)
 lower_stage.add_sim("\x1b[90m50 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.5)
 lower_stage.add_sim("\x1b[90m80 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.8)
 
@@ -140,7 +140,7 @@ upper_stage = Stage("SUSTAINER", airframe_cross_section_area, UPPER_BAY_LENGTH.i
 upper_stage.add_sim("\x1b[90mAbsolute Lower bound (Best case)\x1b[0m", bp_gas_temperature)
 upper_stage.add_sim("\x1b[90mAbsolute Upper bound (Worst case)\x1b[0m", upper_deploy_temperature)
 upper_stage.add_sim("\x1b[90mCalculator v1 (historical)\x1b[0m", old_calculator_temp)
-upper_stage.add_sim("\x1b[32mBEST GUESS (historical: SG1)\x1b[0m", bp_gas_temperature, efficiency=0.162)
+upper_stage.add_sim("\x1b[90mhistorical: SG1\x1b[0m", bp_gas_temperature, efficiency=0.162)
 upper_stage.add_sim("\x1b[90m50 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.5)
 upper_stage.add_sim("\x1b[90m80 efficiency\x1b[0m", bp_gas_temperature, efficiency=0.8)
 
@@ -148,6 +148,38 @@ print(f"BP Calculation results")
 print(f"(Shear pins) {SHEAR_PIN_COUNT} shear pins @ {SHEAR_PIN_FORCE}lbf (each)")
 print(f"(Forces) {TARGET_PRESSURE}psi with {shear_pin_force}lbs shear pin force: {total_force}lbf (equiv {equivalent_pressure}psi)")
 print()
+
+
+
+
+print("==== rcm stuff ====")
+BAR_TO_PSI = 14.5038
+RCM_VOLUME: float = (np.pi * (1)) * 10.9375 # in^3 (Values from seongyong)
+def rcm_test(bp_mass, peak_pressure) -> float:
+    eff = combustion_efficiency_rcm(bp_mass, RCM_VOLUME, peak_pressure)
+    print(f"(RCM): Peak pressure {peak_pressure} psi : Efficiency {(eff*100):.2f}%")
+    return eff
+
+e_list_40k = [rcm_test(1,abs((1.04608 * BAR_TO_PSI) - (0.166255 * BAR_TO_PSI))), rcm_test(1,abs((1.111924 * BAR_TO_PSI) - (0.180069 * BAR_TO_PSI)))]
+e_list_30k = [rcm_test(1,abs((1.540406 * BAR_TO_PSI) - (0.284719 * BAR_TO_PSI)))]
+avg_efficiency = sum(e_list_40k)/len(e_list_40k)
+print(f"\nAverage bp efficiency: {(avg_efficiency*100):.2f}%")
+print()
+
+avg_efficiency_30k = sum(e_list_30k)/len(e_list_30k)
+print(f"\nAverage bp efficiency (30k): {(avg_efficiency_30k*100):.2f}%")
+print()
+
+
+
+lower_stage.add_sim(f"\x1b[32mBEST GUESS 40k (rcm @ {(avg_efficiency*100):.2f}%)\x1b[0m", bp_gas_temperature, efficiency=avg_efficiency)
+seperation_stage.add_sim(f"\x1b[32mBEST GUESS 40k (rcm @ {(avg_efficiency*100):.2f}%)\x1b[0m", bp_gas_temperature, efficiency=avg_efficiency)
+upper_stage.add_sim(f"\x1b[32mBEST GUESS 40k (rcm @ {(avg_efficiency*100):.2f}%)\x1b[0m", bp_gas_temperature, efficiency=avg_efficiency)
+
+lower_stage.add_sim(f"\x1b[32mBEST GUESS 30k (rcm @ {(avg_efficiency_30k*100):.2f}%)\x1b[0m", bp_gas_temperature, efficiency=avg_efficiency_30k)
+seperation_stage.add_sim(f"\x1b[32mBEST GUESS 30k (rcm @ {(avg_efficiency_30k*100):.2f}%)\x1b[0m", bp_gas_temperature, efficiency=avg_efficiency_30k)
+upper_stage.add_sim(f"\x1b[32mBEST GUESS 30k (rcm @ {(avg_efficiency_30k*100):.2f}%)\x1b[0m", bp_gas_temperature, efficiency=avg_efficiency_30k)
+
 
 
 print(seperation_stage)
