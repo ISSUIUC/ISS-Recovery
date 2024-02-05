@@ -13,6 +13,7 @@ KM_TO_M = 1000
 M_TO_KM = 0.001
 MI_TO_KM = 1.60934
 MI_TO_M = MI_TO_KM * KM_TO_M
+BAR_TO_PSI = 14.5038
 
 class Unit(float, Enum):
     CENTIMETERS = CM_TO_M
@@ -193,3 +194,8 @@ class Measurement:
             return f"{self.to(self._p_unit):.2f} {Measurement.length_unit_to_text(self._p_unit)}   ({str(self.m())} m)"
                 
 
+# Conversion functions
+        
+def K_to_R(kelvin: float) -> float:
+    """Kelvin to Rankine converter"""
+    return kelvin * 1.8
