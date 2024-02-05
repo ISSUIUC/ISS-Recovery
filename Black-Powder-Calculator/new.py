@@ -31,7 +31,7 @@ print(f"[[ BP Calculation results ]]")
 print(f"(Shear pins) {config.SHEAR_PIN_COUNT} shear pins @ {config.SHEAR_PIN_FORCE}lbf (each)")
 
 if((config.TARGET_PRESSURE_DEPLOY * airframe_cross_section_area) < shear_pin_force):
-    sim_warnings.append(f"config.TARGET_PRESSURE_DEPLOY is less than the required pressure to break shear pins! ({shear_pin_force:.2f}lbf < {(config.TARGET_PRESSURE_DEPLOY * airframe_cross_section_area):.2f}lbf) Lower stage will NOT deploy!")
+    sim_warnings.append(f"config.TARGET_PRESSURE_DEPLOY is less than the required pressure to break shear pins! ({shear_pin_force:.2f}lbf > {(config.TARGET_PRESSURE_DEPLOY * airframe_cross_section_area):.2f}lbf) Lower stage will NOT deploy!")
 
 print(f"(Forces) Interstage pressure: {config.TARGET_PRESSURE_INTERSTAGE}psi)")
 print(f"(Forces) Deployment pressure: {config.TARGET_PRESSURE_DEPLOY}psi)")

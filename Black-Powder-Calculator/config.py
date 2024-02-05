@@ -5,8 +5,8 @@ import util.environment as env
 import util.environment_utils as env_util
 
 # Configuration:
-TARGET_PRESSURE_INTERSTAGE = 16 # (psi) The target pressure to achieve seperation. "Typical pressure range is from 8-16 psi"
-TARGET_PRESSURE_DEPLOY = 16 # (psi) Target pressure to deploy parachtute
+TARGET_PRESSURE_INTERSTAGE = 4 # (psi) The target pressure to achieve seperation. "Typical pressure range is from 8-16 psi"
+TARGET_PRESSURE_DEPLOY = 10 # (psi) Target pressure to deploy parachtute
 
 # Rocket dimensions
 AIRFRAME_DIAMETER = u.Measurement(3.75, u.Unit.INCHES) # Assuming the rocket to be a perfect cylinder, the diameter of the cylinder
