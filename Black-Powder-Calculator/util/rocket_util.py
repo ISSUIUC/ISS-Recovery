@@ -17,7 +17,14 @@ class Simulation:
             return self.efficiency*100
 
     def result(self):
+        """Gives the amount of bp (in grams) to achieve target system pressure"""
         return ((self.pressure * self.volume) / (config.R * self.temperature)) * self.LB_TO_GRAMS * (1/self.efficiency)
+    
+    def result_inverse(self, bp_grams: float):
+        """Gives the pressure made by a given amount of bp (in grams)"""
+        pressure = ((bp_grams/((1/self.efficiency) * self.LB_TO_GRAMS))*(config.R * self.temperature)) / self.volume
+        return pressure
+
 
 
 class Stage:

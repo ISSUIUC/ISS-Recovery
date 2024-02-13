@@ -5,14 +5,13 @@ import util.environment as env
 import util.environment_utils as env_util
 
 # Configuration:
-TARGET_PRESSURE_INTERSTAGE = 4 # (psi) The target pressure to achieve seperation. "Typical pressure range is from 8-16 psi"
-TARGET_PRESSURE_DEPLOY = 10 # (psi) Target pressure to deploy parachtute
+TARGET_PRESSURE_INTERSTAGE = 16 # (psi) The target pressure to achieve seperation. "Typical pressure range is from 8-16 psi"
+TARGET_PRESSURE_DEPLOY = 16 # (psi) Target pressure to deploy parachtute
 
 # Rocket dimensions
 AIRFRAME_DIAMETER = u.Measurement(3.75, u.Unit.INCHES) # Assuming the rocket to be a perfect cylinder, the diameter of the cylinder
 SEPERATION_CLEARANCE_LENGTH = u.Measurement(3.875, u.Unit.INCHES) # How long the interstage coupler is
-UPPER_BAY_LENGTH = u.Measurement(13.5, u.Unit.INCHES) # How long the upper stage recovery bay is
-LOWER_BAY_LENGTH = u.Measurement(13.5, u.Unit.INCHES) # How long the lower stage recovery bay is
+LOWER_BAY_LENGTH = u.Measurement(15.35, u.Unit.INCHES) # How long the lower stage recovery bay is
 
 # Environment
 SEPERATION_ALTITUDE = u.Measurement(2830, u.Unit.FEET) # Altitude (approximate AGL) at which seperation will take place

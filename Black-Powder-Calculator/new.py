@@ -60,6 +60,14 @@ seperation_stage.add_sim(f"\x1b[32mBEST GUESS 30k (rcm @ {(avg_efficiency_30k*10
 print(seperation_stage)
 print(lower_stage)
 
+len_in = 21.25  
+s1 = rocket.Simulation("_in", 16, airframe_cross_section_area * len_in, config.BP_GAS_TEMPERATURE, bp_efficiency=avg_efficiency_30k)
+s2 = rocket.Simulation("_in", 16, airframe_cross_section_area * len_in, config.BP_GAS_TEMPERATURE, bp_efficiency=avg_efficiency_40k)
+
+print("30k:", s1.result_inverse(6))
+print("40k:", s2.result_inverse(6))
+
+
 # Print errors
 for warning in sim_warnings:
     print("\x1b[33m(WARN): " + warning + "\x1b[0m")
