@@ -68,7 +68,6 @@ d_vel_max =  drogue.get_terminal_velocity(config.APOGEE_ALTITUDE, launch_site)
 
 # Calculate drift
 
-drift_list = []
 timestamp_list = []
 
 drift_drogue = drogue.get_drift(config.ANALYSIS_TIMESTEP, config.APOGEE_ALTITUDE, config.MAIN_ALTITUDE, launch_site, m.Measurement(0).per(m.UTime.SECOND), 0, [], parachute.DriftMonteCarloParameters(0), main)
@@ -97,6 +96,17 @@ print("> MAIN landing velocity: ", main_final_vel)
 print("> MAIN average velocity: ", main_avg_velocity)
 print("\nThe total drift will be", total_drift)
 print()
+
+with open("./drift_out.txt", "w") as f:
+    f.write(",".join([str(m) for m in (drift_drogue.alt_list + drift_main.alt_list)]))
+    f.write("\n")
+    f.write(",".join([str(t) for t in (drift_drogue.ts_list + drift_main.ts_list)]))
+    f.write("\n")
+    f.write(str(drift_drogue.time))
+    f.write("\n")
+    f.write(str(drift_main.time))
+    f.close()
+    print("test file written")
 
 def plot_drift_simulation(drogue_result: parachute.DriftAnalysisResult, main_result: parachute.DriftAnalysisResult):
     total_timestamp_list = drogue_result.ts_list + main_result.ts_list
@@ -148,6 +158,16 @@ def plot_drift_simulation(drogue_result: parachute.DriftAnalysisResult, main_res
 plot_drift_simulation(drift_drogue, drift_main)
 
 # ============== MONTE CARLO ==============
+c = True
+while(c):
+    do_mc = input("Continue simulation with monte-carlo? (y/n): ")
+    if(do_mc == 'y'):
+        c = False
+    if(do_mc == 'n'):
+        exit(0)
+    else:
+        c = True
+
 print("=== Monte carlo ===")
 
 max_force_drogue_list = [m.N_to_lbf(drift_drogue.max_force * config.OPENING_SHOCK_FACTOR)]
@@ -215,20 +235,6 @@ plt.legend()
 plt.grid()
 
 plt.savefig(f"./monte_out/{config.OUTPUT_SHOCK_FILE}.png")
-
-# Plot "3d" plot (all slices)
-"""fig = plt.figure("montecarlo-slice-plot")
-
-for i in range(len(main_results)):
-    m_res = main_results[i]
-    d_res = drogue_results[i]
-
-    total_timestamp_list = d_res.ts_list + m_res.ts_list
-    total_vel_list = d_res.v_list + m_res.v_list
-    total_alt_list = d_res.alt_list + m_res.alt_list
-
-    plt.plot(total_timestamp_list, total_vel_list, color=(i/len(main_results),0,0))
-"""
 plt.show()
     
 

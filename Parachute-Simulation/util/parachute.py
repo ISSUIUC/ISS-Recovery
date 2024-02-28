@@ -26,7 +26,7 @@ class DriftMonteCarloParameters:
         self.ejection_delay = ejection_delay
 
 class DriftAnalysisResult:
-    def __init__(self, drift: util.units.Measurement, max_vel: util.units.Measurement, time: float, timestamp_list: list[float], vel_list: list[float], alt_list: list[float], disreef_forces: list[float], max_force: float, is_monte_carlo:bool=False, monte_carlo_params: DriftMonteCarloParameters = DriftMonteCarloParameters(0)) -> None:
+    def __init__(self, drift: util.units.Measurement, drift_list: list[util.units.Measurement], max_vel: util.units.Measurement, time: float, timestamp_list: list[float], vel_list: list[float], alt_list: list[float], disreef_forces: list[float], max_force: float, is_monte_carlo:bool=False, monte_carlo_params: DriftMonteCarloParameters = DriftMonteCarloParameters(0)) -> None:
         self.drift = drift
         self.time = time
         self.ts_list = timestamp_list
@@ -38,6 +38,7 @@ class DriftAnalysisResult:
         self.is_monte_carlo = is_monte_carlo
         self.monte_carlo_params = monte_carlo_params
         self.disreef_forces = disreef_forces
+        self.drift_list = drift_list
         """Array of forces with associated timestamps"""
 
 
@@ -119,6 +120,7 @@ class Parachute:
         ts_list = []
         vel_list = []
         alt_list = []
+        drift_list = []
         disreef_force_list = [] # List that stores worst-case disreef forces for a possible disreef
         max_force_cur = 0
 
@@ -175,14 +177,14 @@ class Parachute:
             #if(velocity > term_vel):
             #    velocity = term_vel
             drift += environment.get_windspeed(alt) * timestep
+            drift_list.append(drift)
 
             alt -= velocity * timestep
             if(velocity > maximum_velocity):
                 maximum_velocity = velocity
 
-
         
-        return DriftAnalysisResult(drift, maximum_velocity.per(util.units.UTime.SECOND), total_time, ts_list, vel_list, alt_list, disreef_force_list, max_force_cur, monte_carlo_params.ejection_delay != 0, monte_carlo_params)
+        return DriftAnalysisResult(drift, drift_list, maximum_velocity.per(util.units.UTime.SECOND), total_time, ts_list, vel_list, alt_list, disreef_force_list, max_force_cur, monte_carlo_params.ejection_delay != 0, monte_carlo_params)
 
 class ParachuteCalculation:
 
