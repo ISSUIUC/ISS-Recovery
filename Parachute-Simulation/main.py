@@ -163,7 +163,7 @@ while(c):
     do_mc = input("Continue simulation with monte-carlo? (y/n): ")
     if(do_mc == 'y'):
         c = False
-    if(do_mc == 'n'):
+    elif(do_mc == 'n'):
         exit(0)
     else:
         c = True
