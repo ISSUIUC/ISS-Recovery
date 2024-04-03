@@ -31,7 +31,7 @@ print(f"[[ BP Calculation results ]]")
 print(f"(Shear pins) {config.SHEAR_PIN_COUNT} shear pins @ {config.SHEAR_PIN_FORCE}lbf (each)")
 
 if((config.TARGET_PRESSURE_DEPLOY * airframe_cross_section_area) < shear_pin_force):
-    sim_warnings.append(f"config.TARGET_PRESSURE_DEPLOY is less than the required pressure to break shear pins! ({shear_pin_force:.2f}lbf > {(config.TARGET_PRESSURE_DEPLOY * airframe_cross_section_area):.2f}lbf) Lower stage will NOT deploy!")
+    sim_warnings.append(f"config.TARGET_PRESSURE_DEPLOY is less than the required pressure to break shear pins! ((spf) {shear_pin_force:.2f}lbf > (deploy force) {(config.TARGET_PRESSURE_DEPLOY * airframe_cross_section_area):.2f}lbf) Lower stage will NOT deploy!")
 
 print(f"(Forces) Interstage pressure: {config.TARGET_PRESSURE_INTERSTAGE}psi)")
 print(f"(Forces) Deployment pressure: {config.TARGET_PRESSURE_DEPLOY}psi)")
@@ -64,8 +64,8 @@ len_in = 21.25
 s1 = rocket.Simulation("_in", 16, airframe_cross_section_area * len_in, config.BP_GAS_TEMPERATURE, bp_efficiency=avg_efficiency_30k)
 s2 = rocket.Simulation("_in", 16, airframe_cross_section_area * len_in, config.BP_GAS_TEMPERATURE, bp_efficiency=avg_efficiency_40k)
 
-print("30k:", s1.result_inverse(6))
-print("40k:", s2.result_inverse(6))
+#print("30k:", s1.result_inverse(6))
+#print("40k:", s2.result_inverse(6))
 
 
 # Print errors

@@ -8,9 +8,9 @@ import util.environment_utils as eutil
 # Booster wet mass: 50.7 lbs
 # Use DRY MASS since motor will have burned
 
-ROCKET_MASS = u.MassMeasurement(19.8, u.UMass.LB) # Mass of the rocket
+ROCKET_MASS = u.MassMeasurement(29.25, u.UMass.LB) # Mass of the rocket
 LAUNCH_SITE_ALTITUDE = u.Measurement(1250, u.Unit.FEET) # Altitude of the launch site
-APOGEE_ALTITUDE = u.Measurement(39000, u.Unit.FEET) # Apogee deployment altitude
+APOGEE_ALTITUDE = u.Measurement(14618, u.Unit.FEET) # Apogee deployment altitude
 MAIN_ALTITUDE = u.Measurement(2000, u.Unit.FEET) # Main parachute deployment altitude
 
 # WIND_MODEL = eutil.WindModelConstant(u.Measurement(9, u.Unit.MILES).per(u.UTime.HOUR))
@@ -26,9 +26,10 @@ MAIN_DIAMETER = u.Measurement(60, u.Unit.INCHES)
 
 
 
+
 # Parachute parameters
-DROGUE_DRAG_COEFF = 2 # C_d of the drogue parachute (DRIFT: NO EFFECT)
-MAIN_DRAG_COEFF = 2 # C_d of the main parachute (DRIFT: NO EFFECT)
+DROGUE_DRAG_COEFF = 0.84 # C_d of the drogue parachute (DRIFT: NO EFFECT)
+MAIN_DRAG_COEFF = 1.4 # C_d of the main parachute (DRIFT: NO EFFECT)
 DROGUE_T_FILL = 1 # Fill time for DROGUE
 MAIN_T_FILL = 1 # Fill time for MAIN
 DROGUE_FILL_CHAR_FUNCTION = putil.OpeningFunction.NATURAL

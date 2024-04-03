@@ -30,7 +30,7 @@ else:
     drogue_radius = config.DROGUE_DIAMETER/2
     drogue = parachute.Parachute(config.DROGUE_DRAG_COEFF, drogue_radius, config.ROCKET_MASS, drogue_opening_characteristics)
     print("With a drogue parachute diameter of " + str(config.DROGUE_DIAMETER) + ":")
-    print("Terminal drogue velocity at main deploy: " + str(drogue.get_terminal_velocity(config.MAIN_ALTITUDE, launch_site)))
+    print("Terminal drogue velocity at main deploy: " + str(drogue.get_terminal_velocity(config.MAIN_ALTITUDE, launch_site).set_unit(m.Unit.FEET)))
 
 # For proper outputting
 print()
@@ -54,8 +54,8 @@ else:
     main_radius = config.MAIN_DIAMETER/2
     main = parachute.Parachute(config.MAIN_DRAG_COEFF, main_radius, config.ROCKET_MASS, main_opening_characteristics)
     print("With a main parachute diameter of " + str(config.MAIN_DIAMETER) + ":")
-    print("Main terminal velocity at deploy: " + str(main.get_terminal_velocity(config.MAIN_ALTITUDE, launch_site)))
-    print("Main terminal velocity at landing: " + str(main.get_terminal_velocity(m.Measurement(0, m.Unit.METERS), launch_site)))
+    print("Main terminal velocity at deploy: " + str(main.get_terminal_velocity(config.MAIN_ALTITUDE, launch_site).set_unit(m.Unit.FEET)))
+    print("Main terminal velocity at landing: " + str(main.get_terminal_velocity(m.Measurement(0, m.Unit.METERS), launch_site).set_unit(m.Unit.FEET)))
 # For proper outputting
 print()
 main_radius.set_unit(config.OUTPUT_UNITS)
@@ -114,9 +114,12 @@ def plot_drift_simulation(drogue_result: parachute.DriftAnalysisResult, main_res
     total_alt_list = drogue_result.alt_list + main_result.alt_list
     
 
+    plt.plot(total_timestamp_list, total_alt_list)
+    plt.show()
+
     fig = plt.figure("Velocity graph")
     plt.plot(total_timestamp_list, total_vel_list)
-    # ax.plot(total_timestamp_list, total_alt_list)
+    
     plt.xlabel("time (s)")
     plt.ylabel("velocity (m/s)")
     plt.title("Velocity vs time")
@@ -154,6 +157,8 @@ def plot_drift_simulation(drogue_result: parachute.DriftAnalysisResult, main_res
 
 
     plt.show()
+
+
 
 plot_drift_simulation(drift_drogue, drift_main)
 
