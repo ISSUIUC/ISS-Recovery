@@ -1,6 +1,6 @@
 from ambiance import Atmosphere
-import util.units
-import util.environment_utils
+import EnergeticCalculation.util as util
+import EnergeticCalculation.util.environment_utils
 
 class Environment:
     def __init__(self, ground_alt: util.units.Measurement, wind_model: util.environment_utils.WindModel) -> None:

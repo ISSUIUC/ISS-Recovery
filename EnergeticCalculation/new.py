@@ -51,11 +51,16 @@ avg_efficiency_30k = efficiency_30k.get_average_efficiency()
 print(f"Average bp efficiency (30k): {(avg_efficiency_30k*100):.2f}%")
 print()
 
-lower_stage.add_sim(f"\x1b[32mBEST GUESS 40k (rcm @ {(avg_efficiency_40k*100):.2f}%)\x1b[0m", config.BP_GAS_TEMPERATURE, efficiency=avg_efficiency_40k)
-seperation_stage.add_sim(f"\x1b[32mBEST GUESS 40k (rcm @ {(avg_efficiency_40k*100):.2f}%)\x1b[0m", config.BP_GAS_TEMPERATURE, efficiency=avg_efficiency_40k)
+# Provided values 9/10: Sustainer sg 1.3
 
-lower_stage.add_sim(f"\x1b[32mBEST GUESS 30k (rcm @ {(avg_efficiency_30k*100):.2f}%)\x1b[0m", config.BP_GAS_TEMPERATURE, efficiency=avg_efficiency_30k)
-seperation_stage.add_sim(f"\x1b[32mBEST GUESS 30k (rcm @ {(avg_efficiency_30k*100):.2f}%)\x1b[0m", config.BP_GAS_TEMPERATURE, efficiency=avg_efficiency_30k)
+# lower_stage.add_sim(f"\x1b[32mBEST GUESS (Provided values)\x1b[0m", config.BP_GAS_TEMPERATURE, efficiency=0.95)
+
+# Provided values 9/10: Booster sg1.3
+lower_stage.add_sim(f"\x1b[32mBEST GUESS (Provided values)\x1b[0m", config.BP_GAS_TEMPERATURE, efficiency=0.95)
+seperation_stage.add_sim(f"\x1b[32mBEST GUESS (Provided values)\x1b[0m", config.BP_GAS_TEMPERATURE, efficiency=0.95)
+
+#lower_stage.add_sim(f"\x1b[32mBEST GUESS 30k (rcm @ {(avg_efficiency_30k*100):.2f}%)\x1b[0m", config.BP_GAS_TEMPERATURE, efficiency=avg_efficiency_30k)
+#seperation_stage.add_sim(f"\x1b[32mBEST GUESS 30k (rcm @ {(avg_efficiency_30k*100):.2f}%)\x1b[0m", config.BP_GAS_TEMPERATURE, efficiency=avg_efficiency_30k)
 
 print(seperation_stage)
 print(lower_stage)

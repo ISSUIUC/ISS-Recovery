@@ -1,6 +1,6 @@
-import config
-import util.rocket_util as rocket
-import util.units as u
+import EnergeticCalculation.config as config
+import EnergeticCalculation.util.rocket_util as rocket
+import EnergeticCalculation.util.units as u
 
 def combustion_efficiency_temp(input: float):
     """Gets combustion efficiency from air temp"""
@@ -16,6 +16,10 @@ def rcm_test(bp_mass, peak_pressure) -> float:
     eff = combustion_efficiency_rcm(bp_mass, config.RCM_VOLUME, peak_pressure)
     # print(f"(RCM sim): Peak pressure {peak_pressure} psi : Efficiency {(eff*100):.2f}%")
     return eff
+
+def combustion_efficiency_mass(bp_mass: float, structure_wet_mass: float, structure_dry_mass:float):
+    combusted_mass: float = structure_wet_mass - structure_dry_mass
+    return combusted_mass / bp_mass
 
 class RCMEfficiencyCalculation:
     def __init__(self, volume=config.RCM_VOLUME) -> None:

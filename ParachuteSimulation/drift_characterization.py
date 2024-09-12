@@ -24,10 +24,8 @@ class DescentCharacterization:
     
         plt.show()
 
-        
-
 char = DescentCharacterization("./drift_out.txt")
 windspeed = util.units.Measurement(12, util.units.Unit.MILES).per(util.units.UTime.HOUR)
-print(windspeed)
+# print(windspeed)
 print((windspeed * char.get_descent_time_for_alt(util.units.Measurement(384, util.units.Unit.FEET))).ft())
 char.plot()

@@ -1,17 +1,17 @@
 # Configuration file for the Recovery black powder calculation
 import numpy as np
-import util.units as u
-import util.environment as env
-import util.environment_utils as env_util
+import EnergeticCalculation.util.units as u
+import EnergeticCalculation.util.environment as env
+import EnergeticCalculation.util.environment_utils as env_util
 
 # Configuration:
 TARGET_PRESSURE_INTERSTAGE = 16 # (psi) The target pressure to achieve seperation. "Typical pressure range is from 8-16 psi"
 TARGET_PRESSURE_DEPLOY = 16 # (psi) Target pressure to deploy parachtute
 
 # Rocket dimensions
-AIRFRAME_DIAMETER = u.Measurement(3.75, u.Unit.INCHES) # Assuming the rocket to be a perfect cylinder, the diameter of the cylinder
-SEPERATION_CLEARANCE_LENGTH = u.Measurement(3.875, u.Unit.INCHES) # How long the interstage coupler is
-LOWER_BAY_LENGTH = u.Measurement(17, u.Unit.INCHES) # How long the lower stage recovery bay is
+AIRFRAME_DIAMETER = u.Measurement(2.94, u.Unit.INCHES) # Assuming the rocket to be a perfect cylinder, the diameter of the cylinder
+SEPERATION_CLEARANCE_LENGTH = u.Measurement(3.9, u.Unit.INCHES) # How long the interstage coupler is
+LOWER_BAY_LENGTH = u.Measurement(18, u.Unit.INCHES) # How long the lower stage recovery bay is
 
 # Environment
 SEPERATION_ALTITUDE = u.Measurement(2830, u.Unit.FEET) # Altitude (approximate AGL) at which seperation will take place

@@ -1,4 +1,4 @@
-import config
+import EnergeticCalculation.config as config
 
 class Simulation:
     """Abstraction for a single black powder calculation"""

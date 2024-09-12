@@ -1,4 +1,4 @@
-import util.units
+import EnergeticCalculation.util as util
 from abc import ABC, abstractmethod
 
 class WindModel(ABC):
