@@ -8,15 +8,23 @@ Combines parachute simulation and energetic calculator into easy-to-use endpoint
 
 **API Schema**
 `/`
-.. `/chute` : Endpoint for all parachute-related calculators
-.... `/`
-.. `/energetic` : Endpoint for energetic-related calculators
-.... POST `/sim` : Returns the required energetic masses for all `ESimData` schemas passed into this endpoint. Used for charge sizing.
-              Returns as an array of `ESimResult` schemas.
-.... POST `/rcm` : Returns the calculated efficiency for an ejection charge given mass and pressure parameters (Used for RCM/vacuum testing)
-              Takes in the `RCMParam` schema and returns a single number between 0-1, signifying the energetic mass efficiency.
-.... POST `/mass`: Returns the calculated efficiency for an ejection charge given only mass parameters (This is almost guaranteed to be inaccurate)
-              It is useful as a sanity check. Takes in a `MassParam` schema and returns a single number from 0-1, like `/rcm`
+
+> `/chute` : Endpoint for all parachute-related calculators
+
+>> POST `/size` : Given some parachute and rocket parameters, determines chute size (unimplemented)
+
+>> POST `/sim` : Given parachute and rocket parameters, determines descent profile for the vehicle. (unimplemented, asynchronous)
+
+>> POST `/montecarlo` : Performs advanced analysis of chute simulation, granting access to more advanced statistics (such as opening shock calculations) (unimplemented, asynchronous)
+
+> `/energetic` : Endpoint for energetic-related calculators
+
+>> POST `/sim` : Returns the required energetic masses for all `ESimData` schemas passed into this endpoint. Used for charge sizing. Returns as an array of `ESimResult` schemas.
+
+>> POST `/rcm` : Returns the calculated efficiency for an ejection charge given mass and pressure parameters (Used for RCM/vacuum testing). Takes in the `RCMParam` schema and returns a single number between 0-1, signifying the energetic mass efficiency.
+
+>> POST `/mass`: Returns the calculated efficiency for an ejection charge given only mass parameters (This is almost guaranteed to be inaccurate). It is useful as a sanity check. Takes in a `MassParam` schema and returns a single number from 0-1, like `/rcm`
+
 
 
 #### Data schemas - Parameters

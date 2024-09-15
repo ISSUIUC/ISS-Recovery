@@ -48,7 +48,6 @@ def energetic_sim():
         return "JSON Request Malformed", 400
     
     data = request.json
-
     error, code = util.verify_ESimData(data)
     if error:
         return error, code
@@ -57,15 +56,35 @@ def energetic_sim():
         "name": data["name"],
         "sims": []
     }
-
     calculation = util.energetic_sim(data)
-
     for calc in calculation:
         payload["sims"].append({
             "efficiency": calc.efficiency,
             "result": calc.result()
         })
+    return payload
 
+@app.route("/energetic/sim", methods = ['POST'])
+def energetic_sim():
+
+    if not request.json:
+        return "JSON Request Malformed", 400
+    
+    data = request.json
+    error, code = util.verify_ESimData(data)
+    if error:
+        return error, code
+
+    payload = {
+        "name": data["name"],
+        "sims": []
+    }
+    calculation = util.energetic_sim(data)
+    for calc in calculation:
+        payload["sims"].append({
+            "efficiency": calc.efficiency,
+            "result": calc.result()
+        })
     return payload
 
 if __name__ == "__main__":
