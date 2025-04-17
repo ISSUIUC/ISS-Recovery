@@ -145,3 +145,7 @@ four_scenarios_posvecs = np.array([sustainer_nominal_drift_approx_posvecs[0],
                                    booster_nominal_drift_approx_posvecs[0],
                                    booster_offnominal_drift_approx_posvecs[0]]) # all 4 scenarios for one wind speed/direction input
 
+distances = np.array([sustainer_nominal_drift_approx_posvecs[1],
+                                   sustainer_offnominal_drift_approx_posvecs[1],
+                                   booster_nominal_drift_approx_posvecs[1],
+                                   booster_offnominal_drift_approx_posvecs[1]])
