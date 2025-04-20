@@ -14,11 +14,11 @@ DROGUE_T_FILL = 1 # Fill time for DROGUE
 MAIN_T_FILL = 1 # Fill time for MAIN
 
 # variables, local use
-ROCKET_MASS_BOOSTER = u.MassMeasurement(29.8, u.UMass.LB) # Mass of the rocket
-ROCKET_MASS_SUSTAINER = u.MassMeasurement(14.53, u.UMass.LB) # Mass of the rocket
+ROCKET_MASS_BOOSTER = u.MassMeasurement(30.83, u.UMass.LB) # Mass of the rocket
+ROCKET_MASS_SUSTAINER = u.MassMeasurement(16.75, u.UMass.LB) # Mass of the rocket
 
-APOGEE_ALTITUDE_BOOSTER = u.Measurement(11000, u.Unit.FEET) # Apogee deployment altitude
-APOGEE_ALTITUDE_SUSTAINER = u.Measurement(120000, u.Unit.FEET) # Apogee deployment altitude
+APOGEE_ALTITUDE_BOOSTER = u.Measurement(17000, u.Unit.FEET) # Apogee deployment altitude
+APOGEE_ALTITUDE_SUSTAINER = u.Measurement(88000, u.Unit.FEET) # Apogee deployment altitude
 
 DROGUE_DIAMETER_BOOSTER = u.Measurement(15, u.Unit.INCHES)
 DROGUE_DIAMETER_SUSTAINER = u.Measurement(10, u.Unit.INCHES)

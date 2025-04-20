@@ -8,9 +8,9 @@ launch_lat, launch_lon = 35.347538, -117.809397
 
 def plot_trajectory_map(vectors_list, labels):
     # === CONFIGURABLE PARAMETERS ===
-    interp_count = 300         # Number of interpolated points
+    interp_count = 200         # Number of interpolated points
     start_radius = 50          # Circle radius at start (meters)
-    circle_opacity = 0.025       # Fill opacity for error circles
+    circle_opacity = 0.0075       # Fill opacity for error circles
     circle_border_weight = 0   # Outline weight of error circles
     show_point_markers = False # Toggle visibility of small point markers
 
@@ -52,13 +52,13 @@ def plot_trajectory_map(vectors_list, labels):
 
         # Final radius scales with distance from origin
         final_offset = np.linalg.norm(positions_ft[-1]) / 5
-        end_radius = max(500, final_offset * 0.25)  # scale appropriately
+        end_radius = max(500, final_offset * .5)  # scale appropriately
         radii = np.linspace(start_radius, end_radius, interp_count)
 
         # Trajectory line
-        folium.PolyLine(latlon_points, color=color, weight=3, opacity=0.8, popup=label).add_to(fg)
-        folium.Marker(latlon_points[0], popup=f'{label} Launch', icon=folium.Icon(color='blue')).add_to(fg)
-        folium.Marker(latlon_points[-1], popup=f'{label} Final', icon=folium.Icon(color='red')).add_to(fg)
+        folium.PolyLine(latlon_points, color="black", weight=3, opacity=0.8, popup=label).add_to(fg)
+        folium.Marker(latlon_points[0], popup=f'Launch', icon=folium.Icon(color='blue')).add_to(fg)
+        folium.Marker(latlon_points[-1], popup=f'{label} {latlon_points[-1]}', icon=folium.Icon(color='red')).add_to(fg)
 
         # Error circles
         for i, ((lat, lon), radius_m) in enumerate(zip(latlon_points, radii)):
@@ -76,6 +76,7 @@ def plot_trajectory_map(vectors_list, labels):
         fg.add_to(m)
 
     folium.LayerControl().add_to(m)
+    
     return m
 
 def main():

@@ -42,8 +42,104 @@ def get_drift_data(DROGUE_DIAMETER,MAIN_DIAMETER,APOGEE_ALTITUDE,MAIN_ALTITUDE,R
 
     return np.array([drift_drogue , drift_main])
 
+def knots_to_mph(knots):
+    return knots * 1.15078
 
-def Drift_Approx(drogue_result: parachute.DriftAnalysisResult, main_result: parachute.DriftAnalysisResult,typesim):
+def estimate_air_density(alt_ft):
+    """
+    Estimate air density using an exponential decay model.
+    """
+    alt_m = alt_ft * 0.3048
+    if alt_m > 25000:
+        return 0.04008 * np.exp(-alt_m / 6341.62)
+    else:
+        return 1.225 * np.exp(-alt_m / 8500)
+
+def process_wind_data(filepath):
+    with open(filepath, 'r') as f:
+        lines = f.readlines()
+
+    data = {}
+    start_reading = False
+
+    for line in lines:
+        line = line.strip()
+        if not start_reading:
+            if line.startswith("ftAGL"):
+                start_reading = True
+            continue
+
+        if not line or line.startswith("Wind"):
+            continue
+
+        parts = line.split()
+        if len(parts) < 4:
+            continue
+
+        alt = int(parts[0])
+        direction = np.abs(180 - int(parts[1]))
+        speed_kts = float(parts[2])
+        temp = float(parts[3])  # parsed but not used
+
+        speed_mph = round(knots_to_mph(speed_kts), 2)
+        density = round(estimate_air_density(alt), 4)
+
+        if alt not in data:
+            data[alt] = {'count': 1, 'speed': speed_mph, 'dir': direction, 'rho': density}
+        else:
+            d = data[alt]
+            d['count'] += 1
+            d['speed'] = (d['speed'] * (d['count'] - 1) + speed_mph) / d['count']
+            d['dir'] = (d['dir'] * (d['count'] - 1) + direction) / d['count']
+            d['rho'] = (d['rho'] * (d['count'] - 1) + density) / d['count']
+
+    # Build level_n variables and query_altitude_list
+    levels = []
+    sorted_altitudes = sorted(data.keys(), reverse=True)
+    for idx, alt in enumerate(sorted_altitudes):
+        d = data[alt]
+        level_data = [
+            alt,
+            round(d['speed'], 2),
+            int(round(d['dir'])),
+            round(d['rho'], 4)
+        ]
+        globals()[f"level_{idx+1}"] = level_data
+        levels.append(level_data)
+
+    return levels
+
+def merge_levels(website_levels, textfile_levels):
+    merged = {}
+
+    # Add website levels
+    for alt, speed, direction, rho in website_levels:
+        merged[alt] = {'count': 1, 'speed': speed, 'dir': direction, 'rho': rho}
+
+    # Add or average textfile levels
+    for alt, speed, direction, rho in textfile_levels:
+        if alt in merged:
+            d = merged[alt]
+            d['count'] += 1
+            d['speed'] = (d['speed'] * (d['count'] - 1) + speed) / d['count']
+            d['dir'] = (d['dir'] * (d['count'] - 1) + direction) / d['count']
+            d['rho'] = (d['rho'] * (d['count'] - 1) + rho) / d['count']
+        else:
+            merged[alt] = {'count': 1, 'speed': speed, 'dir': direction, 'rho': rho}
+
+    # Convert back to list format and sort by descending altitude
+    final_levels = []
+    for alt in sorted(merged.keys(), reverse=True):
+        d = merged[alt]
+        final_levels.append([
+            alt,
+            round(d['speed'], 2),
+            int(round(d['dir'])),
+            round(d['rho'], 4)
+        ])
+    return final_levels
+
+def Drift_Approx(drogue_result: parachute.DriftAnalysisResult, main_result: parachute.DriftAnalysisResult,typesim, mass, maind):
     total_timestamp_list = drogue_result.ts_list + main_result.ts_list
     total_alt_list = drogue_result.alt_list + main_result.alt_list
 
@@ -57,25 +153,30 @@ def Drift_Approx(drogue_result: parachute.DriftAnalysisResult, main_result: para
     # START POS VECTOR CODE
 
     # Alt Levels to measure at and wind velocity/direction [alt,wvel,wdir] alt=ft, wvel=mph, wdir=degrees (north zero)
-    level_1 = [120000, 26, 170]
-    level_2 = [98000, 26, 170]
-    level_3 = [45000, 125, 90]
-    level_4 = [39000, 102, 90]
-    level_5 = [34000, 101, 90]
-    level_6 = [30000, 79, 90]
-    level_7 = [24000, 61, 90]
-    level_8 = [18000, 57, 85]
-    level_9 = [14000, 41, 87]
-    level_10 = [10000, 26, 95]
-    level_11 = [6400, 14, 90]
-    level_12 = [5000, 5, 60]
-    level_13 = [3000, 1, 0]
-    level_14 = [2500, 2, 195]
-    level_15 = [2000, 2, 190]
-    level_16 = [330, 1, 225]
-    level_17 = [0, 1, 205]
+    level_1 = [120000, 26, 90, 0.003996]
+    level_2 = [98000, 26, 90, 0.01841]
+    level_3 = [45000, 50, 95, 0.1948]
+    level_4 = [39000, 53, 95, 0.4135]
+    level_5 = [34000, 55, 130, 0.4135]
+    level_6 = [30000, 47, 130, 0.4671]
+    level_7 = [24000, 43, 130, 0.5900]
+    level_8 = [18000, 31, 135, 0.7364]
+    level_9 = [14000, 17, 135, 0.8194]
+    level_10 = [10000, 8, 100, 0.9093]
+    level_11 = [6400, 12, 50, 1.007]
+    level_12 = [5000, 12, 25, 1.007]
+    level_13 = [3000, 11, 20, 1.112]
+    level_14 = [2500, 9, 15, 1.112]
+    level_15 = [2000, 9, 15, 1.112]
+    level_16 = [330, 12, 15, 1.225]
+    level_17 = [0, 9, 5, 1.225]
 
-    query_altitude_list = [level_1,level_2,level_3,level_4,level_5,level_6,level_7,level_8,level_9,level_10,level_11,level_12,level_13,level_14,level_15,level_16,level_17]
+    windycom_levels = [level_1,level_2,level_3,level_4,level_5,level_6,level_7,level_8,level_9,level_10,level_11,level_12,level_13,level_14,level_15,level_16,level_17]
+
+    # you need to download wind data from https://windsaloft.us/ at the long/lat of FAR
+
+    textfile_levels = process_wind_data("Drift-Analysis/winds_35.35,-117.81_2300Z.txt")
+    query_altitude_list = merge_levels(windycom_levels, textfile_levels)
 
     position_array = np.array([0.0,0.0])
     pos_array_list = []
@@ -97,10 +198,21 @@ def Drift_Approx(drogue_result: parachute.DriftAnalysisResult, main_result: para
         # Time in level chunk
         time_in_chunk = corresponding_time_next - corresponding_time
 
-        # Convert windspeed from mph to fps
-        wvel = ((query_altitude_list[level+1][1] + query_altitude_list[level][1])/2)*1.467
+        # Convert windspeed from mph to m/s
+        wvel = ((query_altitude_list[level+1][1] + query_altitude_list[level][1])/2)*0.44704
 
-        drift = time_in_chunk*wvel
+        # Drag and drift calculations, Cd is a heavy estimate based on a couple different papers
+
+        Cd = 1
+        rho = ((query_altitude_list[level+1][3] + query_altitude_list[level][3])/2)
+        Area = (maind.m()**2)*(np.pi/4)
+
+        # effctive horizontal velocity relates to windspeed and air density AND time spent to get up to a terminal horizontal velocity
+        k =  (rho * Cd * Area)/(2 * mass.kg())
+        v_effective = wvel * (1-(1/(k*wvel*time_in_chunk+1)))
+
+        drift = time_in_chunk*v_effective*3.28084
+        #drift = time_in_chunk*wvel*3.28094
 
         i = np.sin(np.radians(((query_altitude_list[level+1][2] + query_altitude_list[level][2])/2)))
         j = np.cos(np.radians(((query_altitude_list[level+1][2] + query_altitude_list[level][2])/2)))
@@ -127,16 +239,16 @@ def Drift_Approx(drogue_result: parachute.DriftAnalysisResult, main_result: para
     return (pos_array_list , overland_distance)
 
 sustainer_nominal_drift_values = get_drift_data(config.DROGUE_DIAMETER_SUSTAINER,config.MAIN_DIAMETER_SUSTAINER,config.APOGEE_ALTITUDE_SUSTAINER,config.MAIN_ALTITUDE,config.ROCKET_MASS_SUSTAINER)
-sustainer_nominal_drift_approx_posvecs = Drift_Approx(sustainer_nominal_drift_values[0],sustainer_nominal_drift_values[1],"SUS NOM")
+sustainer_nominal_drift_approx_posvecs = Drift_Approx(sustainer_nominal_drift_values[0],sustainer_nominal_drift_values[1],"SUS NOM",config.ROCKET_MASS_SUSTAINER,config.MAIN_DIAMETER_SUSTAINER)
 
 sustainer_offnominal_drift_values = get_drift_data(config.DROGUE_DIAMETER_SUSTAINER,config.MAIN_DIAMETER_SUSTAINER,config.APOGEE_ALTITUDE_SUSTAINER,config.APOGEE_ALTITUDE_SUSTAINER-config.APOGEE_OFFSET,config.ROCKET_MASS_SUSTAINER)
-sustainer_offnominal_drift_approx_posvecs = Drift_Approx(sustainer_offnominal_drift_values[0],sustainer_offnominal_drift_values[1],"SUS OFFNOM")
+sustainer_offnominal_drift_approx_posvecs = Drift_Approx(sustainer_offnominal_drift_values[0],sustainer_offnominal_drift_values[1],"SUS OFFNOM",config.ROCKET_MASS_SUSTAINER,config.MAIN_DIAMETER_SUSTAINER)
 
 booster_nominal_drift_values = get_drift_data(config.DROGUE_DIAMETER_BOOSTER,config.MAIN_DIAMETER_BOOSTER,config.APOGEE_ALTITUDE_BOOSTER,config.MAIN_ALTITUDE,config.ROCKET_MASS_BOOSTER)
-booster_nominal_drift_approx_posvecs = Drift_Approx(booster_nominal_drift_values[0],booster_nominal_drift_values[1],"BOO NOM")
+booster_nominal_drift_approx_posvecs = Drift_Approx(booster_nominal_drift_values[0],booster_nominal_drift_values[1],"BOO NOM",config.ROCKET_MASS_BOOSTER,config.MAIN_DIAMETER_BOOSTER)
 
 booster_offnominal_drift_values = get_drift_data(config.DROGUE_DIAMETER_BOOSTER,config.MAIN_DIAMETER_BOOSTER,config.APOGEE_ALTITUDE_BOOSTER,config.APOGEE_ALTITUDE_BOOSTER-config.APOGEE_OFFSET,config.ROCKET_MASS_BOOSTER)
-booster_offnominal_drift_approx_posvecs = Drift_Approx(booster_offnominal_drift_values[0],booster_offnominal_drift_values[1],"BOO OFFNOM")
+booster_offnominal_drift_approx_posvecs = Drift_Approx(booster_offnominal_drift_values[0],booster_offnominal_drift_values[1],"BOO OFFNOM",config.ROCKET_MASS_BOOSTER,config.MAIN_DIAMETER_BOOSTER)
 
 #print(sustainer_offnominal_drift_approx_posvecs[0]) # this will print an array of points (feet from FAR site), folowed by the overland distance (miles)
 
