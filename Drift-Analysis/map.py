@@ -85,7 +85,7 @@ def main():
     labels = [f'Sustainer Nominal: {distances[0]:.2f} miles', f'Sustainer Off-Nominal: {distances[1]:.2f} miles', 
               f'Booster Nominal: {distances[2]:.2f} miles', f'Booster Off-Nominal: {distances[3]:.2f} miles']
     trajectory_map = plot_trajectory_map(vectors, labels)
-    trajectory_map.save('Drift-Analysis/trajectory_map.html')
+    trajectory_map.save('trajectory_map.html')
 
 if __name__ == "__main__":
     main()
