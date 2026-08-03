@@ -1,13 +1,4 @@
 
-from logging import config
-
-
-LATITUDE             = 35.347538
-LONGITUDE            = -117.809397
-LAUNCH_SITE_ALTITUDE = 610
-
-ALTITUDE_TIMESTEP    = 100
-
 SUSTAINER_CSV        = "openrocket_sustainer.csv"
 BOOSTER_CSV          = "openrocket_booster.csv"
 
@@ -35,3 +26,12 @@ MC_MAIN_ALT_SIGMA    = 50.0
 MC_REEF_SIGMA        = 0.01
 MC_APO_XY_SIGMA      = 75.0
 M_PER_DEG_LAT = 111_320.0
+
+from config import RocketConfig
+
+CASSIOPIEA = RocketConfig(
+    launch_site_latitude=35.347538,
+    launch_site_longitude=-117.809397,
+
+    booster_reef_ratio=0.1,
+)

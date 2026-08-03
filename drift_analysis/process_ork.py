@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-import drift_analysis.ork_config as config
+import ork_config as config
 
 def meters_to_latlon(x_m, y_m):
     m_per_lon = config.M_PER_DEG_LAT * np.cos(np.radians(config.LATITUDE))
@@ -51,14 +51,17 @@ def get_apogee_state(df, label):
 
 if __name__ == "__main__":
     print("Loading OpenRocket CSVs...")
-    sus_df = load_openrocket_csv(config.SUSTAINER_CSV)
-    boo_df = load_openrocket_csv(config.BOOSTER_CSV)
+    sus_df = load_openrocket_csv(f"drift_analysis/ork/{config.SUSTAINER_CSV}")
+    boo_df = load_openrocket_csv(f"drift_analysis/ork/{config.BOOSTER_CSV}")
+
     print(f"  Sustainer: {len(sus_df)} rows, "
         f"max alt {sus_df['alt_m'].max():.0f} m ({sus_df['alt_m'].max()*3.281/1000:.1f} kft), "
         f"flight time {sus_df['time_s'].max():.1f} s")
+    
     print(f"  Booster  : {len(boo_df)} rows, "
         f"max alt {boo_df['alt_m'].max():.0f} m ({boo_df['alt_m'].max()*3.281/1000:.1f} kft), "
         f"flight time {boo_df['time_s'].max():.1f} s")
+
     print("\nApogee states:")
     sus_apogee_alt, sus_apo_x, sus_apo_y = get_apogee_state(sus_df, "Sustainer")
     boo_apogee_alt, boo_apo_x, boo_apo_y = get_apogee_state(boo_df, "Booster")
