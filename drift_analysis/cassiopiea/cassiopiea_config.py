@@ -33,5 +33,8 @@ CASSIOPIEA = RocketConfig(
     launch_site_latitude=35.347538,
     launch_site_longitude=-117.809397,
 
+    susainter_csv_filename="openrocket_sustainer.csv"
+    booster_csv_filename="openrocket_booster.csv"
+
     booster_reef_ratio=0.1,
 )
